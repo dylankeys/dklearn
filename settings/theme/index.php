@@ -13,16 +13,16 @@
 	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="images/favicon.ico">
+    <link rel="icon" href="../../images/favicon.ico">
 
     <title>dklearn</title>
     <!-- Bootstrap core CSS -->
-    <link href="dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
     <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
     <!--[if lt IE 9]><script src="assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
-    <script src="assets/js/ie-emulation-modes-warning.js"></script>
+    <script src="../../assets/js/ie-emulation-modes-warning.js"></script>
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
@@ -30,7 +30,7 @@
     <![endif]-->
 
 		<?php
-			include("config.php");
+			include("../../config.php");
 			session_start();
          $userID=$_SESSION["currentUserID"];
 
@@ -52,22 +52,22 @@
 
       <!-- The justified navigation menu is meant for single line per list item.
            Multiple lines will require custom code not provided by Bootstrap. -->
-      <div class="masthead" style="background-image: url('images/<?php echo $theme; ?>');background-repeat: repeat-yx; width: 100%;">
+      <div class="masthead" style="background-image: url('../../images/<?php echo $theme; ?>');background-repeat: repeat-yx; width: 100%;">
 	  <!--
         <h3 class="text-muted">Project name</h3> -->
 
-		<p style="text-align:center; font-size:2.5em"><a class="logo" href="index.php"><b>dk</b>learn</a></p>
+		<p style="text-align:center; font-size:2.5em"><a class="logo" href="../../"><b>dk</b>learn</a></p>
 
 
 
         <nav>
           <ul class="nav nav-justified">
-            <li><a href="#">Home</a></li>
-            <li><a href="course/">Courses</a></li>
-            <li><a href="dashboard/">Dashboard</a></li>
-            <li><a href="contact/">Contact</a></li>
-            <li><a href="profile/">Profile</a></li>
-            <?php if ($admin == 1) { echo '<li><a href="settings/">Administration</a></li>'; } ?>
+            <li><a href="../../">Home</a></li>
+            <li><a href="../../course">Courses</a></li>
+            <li><a href="../../dashboard">Dashboard</a></li>
+            <li><a href="../../course">Contact</a></li>
+            <li><a href="../../profile">Profile</a></li>
+            <?php if ($admin == 1) { echo '<li><a href="../">Administration</a></li>'; } ?>
 
 
           </ul>
@@ -76,48 +76,43 @@
 
       <div class="container">
 
-			<?php
-				if (isset($_GET["course"]) && $_GET["course"]=="created")
-				{
-					echo "<h1 style=\"background:green\">Course successfully created!<span style='float:right;font-size:20px;'><a href='index.php'>x</a>&nbsp;</span></h1>";
-				}
-			?>
-				<h1>Available courses</h1><br>
+         <h1>Theme settings</h1>
 
-          <div class="panel panel-default">
-              <!-- Default panel contents -->
-              <div class="panel-heading">Courses</div>
+         <?php
 
-              <!-- Table -->
-              <table class="table">
+            if (isset($_POST["theme"]))
+            {
+               $themevalue = $_POST["theme"];
 
-					<tr><th style="text-align:left;width:150px">Course</th><th style="text-align:left;max-width:500px">Description</th></tr>
-					<?php
+               $dbQuery=$db->prepare("update config set value=:theme where setting='theme-colour'");
+         		$dbParams=array('theme'=>$themevalue);
+         		$dbQuery->execute($dbParams);
 
-						$dbQuery=$db->prepare("select * from courses");
-						//$dbParams=array('id'=>$id);
-						$dbQuery->execute();
+               echo "<h1 style=\"background:green\">Theme changed!<span style='float:right;font-size:20px;'><a href='index.php'>x</a>&nbsp;</span></h1>";
+            }
 
-						while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC))
-						{
-							$courseId=$dbRow["id"];
-							$title=$dbRow["title"];
-							$description=$dbRow["description"];
-							//$theIcon=$dbRow["icon"];
-							$start=$dbRow["start"];
-							$end=$dbRow["end"];
-							$active=$dbRow["active"];
+         ?>
 
-							echo "<tr> <td><a class='a' href='course/view.php?id=$courseId'>$title</a></td> <td>$description</td></tr>";
-							//echo "";
-						}
-	 				?>
+         <form action="index.php" method="post">
+            <label for="theme">Theme colour:</label>
+            <select name="theme">
+               <?php
+                  $dbQuery=$db->prepare("select * from themes where orgid=0");
+   			      $dbQuery->execute();
 
-	 			</table>
-          </div>
+      		      while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC)) {
+                     $themecolour = $dbRow["theme"];
+                     $themename = $dbRow["themename"];
+
+                     echo '<option style="background-image:url(../../images/'.$themename.')" value="'.$themename.'">'.$themecolour.'</option>';
+                  }
+               ?>
+            </select>
+          <br><input type="submit" />
+       </form>
 
       </div>
 		<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    	<script src="assets/js/ie10-viewport-bug-workaround.js"></script>
+    	<script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
 	</body>
 </html>

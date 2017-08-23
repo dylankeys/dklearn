@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <?php
-    include("dbConnect.php");
+    include("../config.php");
     session_start();
-   
+
     unset($_SESSION["currentUser"]);
     unset($_SESSION["currentUserID"]);
 
@@ -26,24 +26,24 @@
                 //header("Location: /profile.php");
                 if (isset($_POST["courseid"]))
                 {
-                    echo "<script>window.location.href = 'course.php?id=". $_POST["courseid"] ."'</script>";
+                    echo "<script>window.location.href = '../course/view.php?id=". $_POST["courseid"] ."'</script>";
                 }
                 else
                     {
-                    echo "<script>window.location.href = 'profile.php'</script>";
+                    echo "<script>window.location.href = '../profile'</script>";
                 }
 
             }
             else
             {
                 //header("Location: /login.php?failCode=2");
-                echo "<script>window.location.href = 'login.php?failCode=2'</script>";
+                echo "<script>window.location.href = '../login/index.php?failCode=2'</script>";
             }
         }
         else
         {
             //header("Location: /login.php?failCode=1");
-            echo "<script>window.location.href = 'login.php?failCode=1'</script>";
+            echo "<script>window.location.href = '../login/index.php?failCode=1'</script>";
         }
 
     }
@@ -61,20 +61,20 @@
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-    
+
   <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="images/favicon.ico">
+    <link rel="icon" href="../images/favicon.ico">
 
     <title>dklearn</title>
     <!-- Bootstrap core CSS -->
-    <link href="dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
     <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
     <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
-    <script src="assets/js/ie-emulation-modes-warning.js"></script>
+    <script src="../assets/js/ie-emulation-modes-warning.js"></script>
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
@@ -87,23 +87,23 @@
 
 <!-- The justified navigation menu is meant for single line per list item.
            Multiple lines will require custom code not provided by Bootstrap. -->
-      <div class="masthead" style="background-image: url('images/bg-color.png');background-repeat: repeat-yx; width: 100%;">
+      <div class="masthead" style="background-image: url('../images/<?php echo $theme; ?>');background-repeat: repeat-yx; width: 100%;">
     <!--
         <h3 class="text-muted">Project name</h3> -->
-    
-    <p style="text-align:center; font-size:2.5em"><a class="logo" href="index.php"><b>dk</b>learn</a></p>
+
+    <p style="text-align:center; font-size:2.5em"><a class="logo" href="../"><b>dk</b>learn</a></p>
 
 
-    
-        <nav>
-          <ul class="nav nav-justified">
-            <li class="active"><a href="index.php">Home</a></li>
-            <li><a href="courses.php">Courses</a></li>
-            <li><a href="dashboard.php">Dashboard</a></li>
-            <li><a href="contact.php">Contact</a></li>
-            <li><a href="profile.php">Profile</a></li>
-            
-      
+
+    <nav>
+     <ul class="nav nav-justified">
+      <li><a href="../">Home</a></li>
+      <li><a href="../course">Courses</a></li>
+      <li><a href="../dashboard">Dashboard</a></li>
+      <li><a href="../contact">Contact</a></li>
+      <li><a href="../profile">Profile</a></li>
+
+
           </ul>
         </nav>
       </div>
@@ -137,14 +137,14 @@
 		echo "<h4>Please log in or register</h4>";
 	/*
 	}
-	
+
 	if(isset($_SESSION["message"]))
 	{
 		echo "<h4 style='color:green'>You have been sucessfully registered, log in to begin learning</h4>";
 	}
 */
 ?>
-   <form name="login" method="post" action="login.php">
+   <form name="login" method="post" action="../login/index.php">
 
 	<div id="loginInfo"class="form-group">
     <input type="text" class="form-control" placeholder="username" name="username">
@@ -165,7 +165,7 @@
      <input style="float:right" type="submit" value="Login" class="btn btn-default" role="button">
 	 </form>
   <br><br>
-   <a class="a" href="register.php"><h4>Don't have an account? Register here</h4></a>
+   <a class="a" href="../register/index.php"><h4>Don't have an account? Register here</h4></a>
 
    </div>
    </div>

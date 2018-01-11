@@ -16,6 +16,5 @@
 
 		header("Location: view.php?id=". $courseID);
 
-
 	    //header("Location: registerKillSession.php");
 		?>

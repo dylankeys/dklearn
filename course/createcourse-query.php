@@ -1,19 +1,25 @@
 <?php
 		include ("../config.php");
 
-		$title=$_POST["title"];
+		$title=$_POST["courseName"];
+		$useDates=$_POST["useCourseDates"];
 		$description=$_POST["description"];
-		$start=$_POST["start"];
-		$end=$_POST["end"];
-		$usemedia=$_POST["usemedia"];
-		$media=$_POST["media"];
-		$activitycount=$_POST["activitycount"];
+		$topicCount=$_POST["topicCount"];
 		$active=$_POST["active"];
+		
+		if($useDates == "yes")
+		{
+			$startDate=$_POST["dayStart"]."-".$_POST["monthStart"]."-".$_POST["yearStart"];
+			$endDate=$_POST["dayEnd"]."-".$_POST["monthEnd"]."-".$_POST["yearEnd"];
+		}
+		else
+		{
+			$startDate = null;
+			$endDate = null;
+		}
 
-		 //$password = md5($password);
-
-		$dbQuery=$db->prepare("insert into courses values (null,:title,:description,:start,:end,:usemedia,:media,:activitycount,:active)");
-		$dbParams=array('title'=>$title, 'description'=>$description, 'start'=>$start, 'end'=>$end, 'usemedia'=>$usemedia, 'media'=>$media, 'activitycount'=>$activitycount, 'active'=>$active);
+		$dbQuery=$db->prepare("insert into courses values (null,:title,:description,:start,:end,:topiccount,:active,1)");
+		$dbParams=array('title'=>$title, 'description'=>$description, 'start'=>$startDate, 'end'=>$endDate, 'topiccount'=>$topicCount, 'active'=>$active);
 		$dbQuery->execute($dbParams);
 
 		header("Location: index.php?course=created");

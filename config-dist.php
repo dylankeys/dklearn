@@ -1,10 +1,10 @@
 <?php //Rocket Learn configuration file
 
 // set up database connection
-$dbHost = 'db672227184.db.1and1.com';
-$databaseName = 'db672227184';
-$databaseUsername = 'dbo672227184';
-$databasePassword 	= 'CaseOffended72!';
+$dbHost = '';
+$databaseName = '';
+$databaseUsername = '';
+$databasePassword 	= '';
 
 
 // make the database connection

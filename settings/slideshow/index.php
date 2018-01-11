@@ -9,11 +9,11 @@
 	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="../images/favicon.ico">
+    <link rel="icon" href="../../images/favicon.ico">
 
 	<?php
-		include("../config.php");
-		include("../lib.php");
+		include("../../config.php");
+		include("../../lib.php");
 		session_start();
         $userID=$_SESSION["currentUserID"];
 		
@@ -35,10 +35,10 @@
         }
 	?>
 	
-    <title><?php echo $sitename;?> | Settings</title>
+    <title><?php echo $sitename;?> | Slideshow Settings</title>
 	
 	<!--DK CSS-->
-	<link href="../styles.css" rel="stylesheet">
+	<link href="../../styles.css" rel="stylesheet">
 	
 	</head>
 
@@ -46,29 +46,29 @@
 
 		<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1E88FF;">
 		<!--<nav class="navbar navbar-expand-lg navbar-light bg-light">-->
-		  <a class="navbar-brand" href="../index.php"><?php echo $sitename;?></a>
+		  <a class="navbar-brand" href="../../"><?php echo $sitename;?></a>
 		  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
 			<span class="navbar-toggler-icon"></span>
 		  </button>
 		  <div class="collapse navbar-collapse" id="navbarText">
 			<ul class="navbar-nav mr-auto">
 			  <li class="nav-item">
-				<a class="nav-link" href="../">Home</a>
+				<a class="nav-link" href="../../">Home</a>
 			  </li>
 			  <li class="nav-item">
-				<a class="nav-link" href="../course/">Courses</a>
+				<a class="nav-link" href="../../course/">Courses</a>
 			  </li>
 			  <li class="nav-item">
-				<a class="nav-link" href="../dashboard/">Dashboard</a>
+				<a class="nav-link" href="../../dashboard/">Dashboard</a>
 			  </li>
 			  <li class="nav-item">
-				<a class="nav-link" href="../contact/">Contact</a>
+				<a class="nav-link" href="../../contact/">Contact</a>
 			  </li>
 			  <li class="nav-item">
-				<a class="nav-link" href="../profile/">Profile</a>
+				<a class="nav-link" href="../../profile/">Profile</a>
 			  </li>
 			  <li class="nav-item active">
-				<?php if (has_capability("site:config",$userID)) { echo '<a class="nav-link" href="../settings/">Administration</a>'; } ?>
+				<?php if (has_capability("site:config",$userID)) { echo '<a class="nav-link" href="../../settings/">Administration</a>'; } ?>
 			  </li>
 			</ul>
 			<span class="navbar-text">
@@ -78,7 +78,7 @@
 					echo "<img src='".$profileimage."' width='28px' alt='Profile Image' class='rounded-circle'>&nbsp;<a href='../profile/'>".$fullname." (<a href='../profile/killSession.php'>Log out</a>)</a>";
 				}
 				else {
-					echo "<a href='../login/'>Log in or sign up</a>";
+					echo "<a href='../../login/'>Log in or sign up</a>";
 				}
 			  ?>
 			</span>
@@ -87,11 +87,67 @@
 
       <div class="container">
 
-         <h1>Settings</h1>
-         <ul class="list">
-            <li><a href="theme/"><h3>Theme</h3></a></li>
-			<li><a href="slideshow/"><h3>Slideshow</h3></a></li>
-         </ul>
+         <h1>Slideshow image source URLs</h1>
+
+         <?php
+
+            if (isset($_POST["slideshowImages"]))
+            {
+				$time=time();
+				$slide1 = $_POST["slideOne"];
+				$dbQuery=$db->prepare("update config set value=:slideOne, lastmodified=:time where setting='slideone'");
+         		$dbParams=array('slideOne'=>$slide1,'time'=>$time);
+         		$dbQuery->execute($dbParams);
+				
+				$slide2 = $_POST["slideTwo"];
+				$dbQuery=$db->prepare("update config set value=:slideTwo, lastmodified=:time where setting='slidetwo'");
+         		$dbParams=array('slideTwo'=>$slide2,'time'=>$time);
+         		$dbQuery->execute($dbParams);
+				
+				$slide3 = $_POST["slideThree"];
+				$dbQuery=$db->prepare("update config set value=:slideThree, lastmodified=:time where setting='slidethree'");
+         		$dbParams=array('slideThree'=>$slide3,'time'=>$time);
+         		$dbQuery->execute($dbParams);
+				
+				echo "<script>window.location.href = 'index.php?success=1'</script>";
+            }
+			
+			if(isset($_GET["success"]))
+			{
+				echo "<h1 style=\"background:green\">Slideshow images updated!<span style='float:right;font-size:20px;'><a href='index.php'>x</a>&nbsp;</span></h1>";
+			}
+
+         ?>
+
+         <form action="index.php" method="post">
+            
+               <?php
+                  $dbQuery=$db->prepare("select * from config");
+   			      $dbQuery->execute();
+
+      		      while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC)) {
+                     $setting = $dbRow["setting"];
+					 
+					 if ($setting == "slideone") {
+						$slideOne = $dbRow["value"];
+						echo '<label for="slideOne">Slide one:</label>
+								<input type="text" name="slideOne" value="'.$slideOne.'">';
+					 }
+					 else if ($setting == "slidetwo") {
+						$slideTwo = $dbRow["value"];
+						echo '<label for="slideTwo">Slide two:</label>
+								<input type="text" name="slideTwo" value="'.$slideTwo.'">';
+					 }
+					 else if ($setting == "slidethree") {
+						$slideThree = $dbRow["value"];
+						echo '<label for="slideThree">Slide three:</label>
+								<input type="text" name="slideThree" value="'.$slideThree.'">';
+					 }
+                  }
+               ?>
+            <input type="hidden" name="slideshowImages" />
+          <br><input type="submit" />
+       </form>
 
       </div>
 	  

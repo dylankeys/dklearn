@@ -1,0 +1,31 @@
+.logo:hover {
+	color:#ffffff;
+	text-decoration:none;
+}
+.list a {
+    color: #000;
+}
+div.course-desc {
+	background:#D3D3D3;
+	padding:15px;
+	border-radius:10px;
+	font-size:1.25em;
+}
+footer {
+	background:#8c8b8d;
+	padding:15px;
+	color:#ffffff;
+	bottom:0;
+	width:100%;
+	min-height: 150px;
+}
+ul.v-links {
+	float:right;
+	list-style-type: none;
+}
+p.copyright {
+	float:left;
+}
+
+
+

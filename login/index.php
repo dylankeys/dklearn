@@ -1,7 +1,7 @@
-<!DOCTYPE html>
 <?php
+	session_start();
     include("../config.php");
-    session_start();
+	include("../lib.php");
 
     unset($_SESSION["currentUser"]);
     unset($_SESSION["currentUserID"]);
@@ -23,13 +23,19 @@
             {
                 $_SESSION["currentUser"]=$formUser;
                 $_SESSION["currentUserID"]=$dbRow["id"];
+				
+				$lastlogin=time();
+				$dbQuery=$db->prepare("update users set lastlogin=:lastlogin where id=:userid");
+				$dbParams=array('lastlogin'=>$lastlogin, 'userid'=>$_SESSION["currentUserID"]);
+				$dbQuery->execute($dbParams);
+
                 //header("Location: /profile.php");
                 if (isset($_POST["courseid"]))
                 {
                     echo "<script>window.location.href = '../course/view.php?id=". $_POST["courseid"] ."'</script>";
                 }
                 else
-                    {
+                {
                     echo "<script>window.location.href = '../profile'</script>";
                 }
 
@@ -49,64 +55,86 @@
     }
     else
     {
-
+		
 ?>
-<html>
-<head>
+<!DOCTYPE html>
+<?php
+		session_start();
+        $userID=$_SESSION["currentUserID"];
+		
+		$dbQuery=$db->prepare("select * from users where id=:id");
+        $dbParams = array('id'=>$userID);
+        $dbQuery->execute($dbParams);
+        //$dbRow=$dbQuery->fetch(PDO::FETCH_ASSOC);
+
+        while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC))
+        {
+           $username=$dbRow["username"];
+		   $fullname=$dbRow["fullname"];
+		   $profileimage=$dbRow["profileimage"];
+        }
+?>
+<html lang="en">
+  <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
 
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-
-  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <meta name="description" content="">
     <meta name="author" content="">
     <link rel="icon" href="../images/favicon.ico">
+	
+    <title><?php echo $sitename;?> | Login</title>
+	
+	<!--DK CSS-->
+	<link href="../styles.css" rel="stylesheet">
+	
+	</head>
 
-    <title>dklearn</title>
-    <!-- Bootstrap core CSS -->
-    <link href="../dist/css/bootstrap.min.css" rel="stylesheet">
+	<body>
 
-    <!-- Custom styles for this template -->
-    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
-    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
-    <script src="../assets/js/ie-emulation-modes-warning.js"></script>
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
-
-</head>
-<body>
-
-
-<!-- The justified navigation menu is meant for single line per list item.
-           Multiple lines will require custom code not provided by Bootstrap. -->
-      <div class="masthead" style="background-image: url('../images/<?php echo $theme; ?>');background-repeat: repeat-yx; width: 100%;">
-    <!--
-        <h3 class="text-muted">Project name</h3> -->
-
-    <p style="text-align:center; font-size:2.5em"><a class="logo" href="../"><b>dk</b>learn</a></p>
-
-
-
-    <nav>
-     <ul class="nav nav-justified">
-      <li><a href="../">Home</a></li>
-      <li><a href="../course">Courses</a></li>
-      <li><a href="../dashboard">Dashboard</a></li>
-      <li><a href="../contact">Contact</a></li>
-      <li><a href="../profile">Profile</a></li>
-
-
-          </ul>
-        </nav>
-      </div>
+		<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1E88FF;">
+		<!--<nav class="navbar navbar-expand-lg navbar-light bg-light">-->
+		  <a class="navbar-brand" href="../index.php"><?php echo $sitename;?></a>
+		  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		  </button>
+		  <div class="collapse navbar-collapse" id="navbarText">
+			<ul class="navbar-nav mr-auto">
+			  <li class="nav-item">
+				<a class="nav-link" href="../">Home</a>
+			  </li>
+			  <li class="nav-item">
+				<a class="nav-link" href="../course/">Courses</a>
+			  </li>
+			  <li class="nav-item">
+				<a class="nav-link" href="../dashboard/">Dashboard</a>
+			  </li>
+			  <li class="nav-item">
+				<a class="nav-link" href="../contact/">Contact</a>
+			  </li>
+			  <li class="nav-item active">
+				<a class="nav-link" href="../profile/">Profile</a>
+			  </li>
+			  <li class="nav-item">
+				<?php if (has_capability("site:config",$userID)) { echo '<a class="nav-link" href="../settings/">Administration</a>'; } ?>
+			  </li>
+			</ul>
+			<span class="navbar-text">
+			
+			  <?php
+				if (isset($username)) {
+					echo "<img src='".$profileimage."' width='28px' alt='Profile Image' class='rounded-circle'>&nbsp;<a href='../profile/'>".$fullname." (<a href='../profile/killSession.php'>Log out</a>)</a>";
+				}
+				else {
+					echo "<a href='../login/'>Log in or sign up</a>";
+				}
+			  ?>
+			</span>
+		  </div>
+		</nav>
 
 <div class="container">
 
@@ -128,23 +156,27 @@
 
     }
     ?>
-    <div style="width:30%; margin-left:auto; margin-right:auto;">
+    <div style="width:50%; margin-left:auto; margin-right:auto;">
 <br>
 <?php
-/*
-	if (!isset($_SESSION["message"]))
-	{*/
+
+	if (!isset($_GET["registered"]))
+	{
 		echo "<h4>Please log in or register</h4>";
-	/*
 	}
 
-	if(isset($_SESSION["message"]))
+	if(isset($_GET["registered"]))
 	{
-		echo "<h4 style='color:green'>You have been sucessfully registered, log in to begin learning</h4>";
+		echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
+				<strong>Successfully registered!</strong> Log in below to access your account and begin learning.
+				<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+				</button>
+			</div>';
 	}
-*/
+
 ?>
-   <form name="login" method="post" action="../login/index.php">
+   <form name="login" method="post" action="index.php">
 
 	<div id="loginInfo"class="form-group">
     <input type="text" class="form-control" placeholder="username" name="username">
@@ -165,14 +197,29 @@
      <input style="float:right" type="submit" value="Login" class="btn btn-default" role="button">
 	 </form>
   <br><br>
-   <a class="a" href="../register/index.php"><h4>Don't have an account? Register here</h4></a>
+   <a class="a" href="../register/"><h4>Don't have an account? Register here</h4></a>
+   <!--<a class="a" href="../register/organisation/"><h4>or set up an organisation here</h4></a>-->
 
    </div>
    </div>
+   
+   <footer>
+		<p class="copyright"><?php echo $sitename ." | &copy ". date("Y"); ?></p>
+		<ul class="v-links">
+			<li>Home</li>
+			<li>Courses</li>
+			<li>Dashboard</li>
+			<li>Contact</li>
+			<li>Profile</li>
+		</ul>
+	  </footer>
+	  
+	    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous"></script>
 </body>
 
 </html>
-
 <?php
-}
+	}
 ?>

@@ -144,7 +144,29 @@
 					}
 					echo "<div class='course-desc'>$description</div>";
 					
-					//course content
+					$dbQueryTopics = $db->prepare("select * from topics where `courseid`=:courseID order by `order`");
+					$dbParamsTopics = array('courseID' => $id);
+					$dbQueryTopics->execute($dbParamsTopics);
+					
+					while ($dbRowTopics = $dbQueryTopics->fetch(PDO::FETCH_ASSOC)) {
+						
+						$title = $dbRowTopics["name"];
+						$summary = $dbRowTopics["summary"];
+						$visible = $dbRowTopics["visible"];
+						
+						if ($visible == "1")
+						{
+							echo '<br><div class="p-3 mb-2 bg-light text-dark">
+								<h3>'.$title.'</h3>
+								<p>'.$summary.'</p>
+								<ul>
+									<li>Element 1</li>
+									<li>Element 2</li>
+									<li>Element 3</li>
+								</ul>
+							</div>';
+						}
+					}
 					
                 } else {
 					echo "<div class='course-desc'>$description";
@@ -162,6 +184,7 @@
             }
 
 		?>
+		
 	  </div>
 		<br>
 		<footer>

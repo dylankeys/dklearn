@@ -26,6 +26,14 @@ ul.v-links {
 p.copyright {
 	float:left;
 }
+.course-btn {
+	padding-right: 10px;
+	padding-bottom: 10px;
+	padding-left: 10px;
+}
+a.dimmed, a.dimmed:hover {
+	color: #a8abaf;
+}
 
 
 

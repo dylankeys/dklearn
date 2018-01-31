@@ -1,3 +1,22 @@
+<?php
+	include("../config.php");
+	
+	if (isset($_POST["submit"]))
+	{
+		$id=$_POST["id"]; 
+		$title=$_POST["courseName"];
+		$description=$_POST["description"];
+		$topicCount=$_POST["topicCount"];
+		$active=$_POST["active"];
+		
+		$dbQuery=$db->prepare("update courses set `title`=:title, `description`=:description, `topiccount`=:topiccount, `active`=:active where `id`=:id");
+		$dbParams=array('id'=>$id, 'title'=>$title, 'description'=>$description, 'topiccount'=>$topicCount, 'active'=>$active);
+		$dbQuery->execute($dbParams);
+		
+		echo "<script>window.location.href = 'view.php?id=".$id."'</script>";
+	}
+	else {
+?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -16,6 +35,38 @@
 		include("../lib.php");
 		session_start();
         $userID=$_SESSION["currentUserID"];
+		
+		if(!has_capability("course:admin",$userID))
+		{
+			echo "<script>window.location.href = 'index.php?permission=0'</script>";
+		}
+		
+		if (isset($_GET["id"]))
+		{
+            if($_GET["id"]==null)
+            {
+                echo "<script>window.location.href = 'index.php?course=noid'</script>";
+            }
+			$id = $_GET["id"];
+
+			$dbQuery=$db->prepare("select * from courses where id=:id");
+			$dbParams=array('id'=>$id);
+			$dbQuery->execute($dbParams);
+
+			while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC))
+			{
+				$title=$dbRow["title"];
+				$description=$dbRow["description"];	
+				$topiccount=$dbRow["topiccount"];	
+				$active=$dbRow["active"];
+				
+				echo "<title>".$title." | Settings</title>";
+			}
+		}
+		else
+		{
+			echo "<script>window.location.href = 'index.php?course=noid'</script>";
+		}
 		
 		$dbQuery=$db->prepare("select * from users where id=:id");
         $dbParams = array('id'=>$userID);
@@ -82,84 +133,49 @@
 		<br>
 
         <div class="container">
-
-            <?php
-            if (isset($_GET["course"]) && $_GET["course"]=="created")
-            {
-				echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
-						<strong>Success!</strong> The course has been created.
-						<button type="button" class="close" data-dismiss="alert" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-						</button>
-					</div>';
-            }
-            if (isset($_GET["course"]) && $_GET["course"]=="noid")
-            {
-				echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
-						<strong>ERROR!</strong> No course ID selected. Please contact the site administrator if this was a system fault.
-						<button type="button" class="close" data-dismiss="alert" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-						</button>
-					</div>';
-            }
-			if (isset($_GET["unenrol"]) && $_GET["unenrol"]=="1")
-            {
-				echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
-						<strong>Success!</strong> You have been unenrolled from the course.
-						<button type="button" class="close" data-dismiss="alert" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-						</button>
-					</div>';
-            }
-			if (isset($_GET["permission"]) && $_GET["permission"]=="0")
-            {
-				echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
-						<strong>ERROR!</strong> Invalid permissions to access this page. Please contact the site administrator if this was a system fault.
-						<button type="button" class="close" data-dismiss="alert" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-						</button>
-					</div>';
-            }
-            ?>
-            <h1>All courses</h1>
-            <?php if(has_capability("course:create",$userID)) { echo '<button type="button" class="btn btn-primary btn-sm" style="float:right" onclick="window.location.href=\'create.php\'">Create a course</button>'; } ?>
-            <br><br>
-
-                <!-- Default panel contents --
-                <!-- Table -->
-                <table class="table">
-
-                    <tr><th style="text-align:left;width:150px">Course</th><th style="text-align:left;max-width:500px">Description</th></tr>
-                    <?php
-
-                    $dbQuery=$db->prepare("select * from courses");
-                    //$dbParams=array('id'=>$id);
-                    $dbQuery->execute();
-
-                    while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC))
-                    {
-                        $courseId=$dbRow["id"];
-                        $title=$dbRow["title"];
-                        $description=$dbRow["description"];
-                        //$theIcon=$dbRow["icon"];
-                        $start=$dbRow["start"];
-                        $end=$dbRow["end"];
-                        $active=$dbRow["active"];
-
-						if ($active == "y" || has_capability("course:admin",$userID))
-						{
-							if ($active == "n")
-							{
-								echo "<tr> <td><a class='dimmed' href='view.php?id=$courseId'>$title</a></td> <td>$description</td></tr>";
-							}
-							else {
-								echo "<tr> <td><a class='a' href='view.php?id=$courseId'>$title</a></td> <td>$description</td></tr>";
-							}
-						}
-                    }
-                    ?>
-
-                </table>
+		
+            <h1><?php echo $title . " Settings"; ?></h1>
+            
+			<br>
+		<form method="post" action="settings.php">
+		<form>
+			<div class="form-row">
+				<div class="form-group col-md-12">
+					<label for="courseName">Course name</label>
+					<input type="text" class="form-control" id="courseName" name="courseName" aria-describedby="courseNameHelp" value="<?php echo $title; ?>">
+					<small id="courseNameHelp" class="form-text text-muted">Your course name must be between 5-50 characters</small>
+				</div>
+			</div>
+			
+			<div class="form-row">
+				<div class="form-group col-md-12">
+					<label for="description">Course description</label>
+					<textarea class="form-control" id="description" name="description" rows="5"><?php echo $description; ?></textarea>
+				</div>
+			</div>
+			
+			<div class="form-row">
+				<div class="form-group col-md-6">
+					<label for="topicCount">Topics</label>
+					<input type="number" class="form-control" aria-describedby="topicCountHelp" id="topicCount" value="<?php echo $topiccount; ?>" name="topicCount">
+					<small id="topicCountHelp" class="form-text text-muted">Number of topics on this course</small>
+				</div>
+				
+				<div class="form-group col-md-6">
+					<label for="active">Active</label>
+					<select id="active" name="active" aria-describedby="activeHelp" class="form-control">
+						<option value="y" <? if ($active == 'y') { echo "selected"; } ?>>Yes</option>
+						<option value="n" <? if ($active == 'n') { echo "selected"; } ?>>No</option>
+					</select>
+					<small id="activeHelp" class="form-text text-muted">Is this course active?</small>
+				</div>
+			</div>
+			
+			<input type="hidden" name="id" value="<?php echo $id; ?>" />
+			
+			<input class="btn btn-primary" type="submit" name="submit" />
+		</form>
+		<br>
 
         </div>
 		
@@ -178,3 +194,6 @@
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous"></script>
 	</body>
 </html>
+<?php
+	}
+?>

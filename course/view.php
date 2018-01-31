@@ -127,7 +127,16 @@
                 $media = $dbRow["media"];
 				
                 echo "<h1>$title</h1>";
-
+				
+					/*if (!has_capability("course:admin",$userID)) {
+							echo "<form style='float:right;padding:10px;' name='enrol' method='post' action='unenrol.php'>";
+								echo '<input type="hidden" name="courseID" value="' . $id . '">';
+								echo '<input type="hidden" name="userID" value="' . $userID . '">';
+								echo '<input type="submit" value="Unenrol" class="btn btn-primary btn-sm" role="button">';
+							echo "</form>";
+					}*/
+				//echo '</div>';
+				
                 $dbQuery2 = $db->prepare("select * from enrolments where userID=:userID AND courseID=:courseID");
                 $dbParams2 = array('userID' => $userID, 'courseID' => $id);
                 $dbQuery2->execute($dbParams2);
@@ -135,15 +144,13 @@
 
                 if ($rows>0 || has_capability("course:admin",$userID)) {
 					
-					if (!has_capability("course:admin",$userID)) {
-						echo "<form style='float:right;padding:10px;' name='enrol' method='post' action='unenrol.php'>";
-							echo '<input type="hidden" name="courseID" value="' . $id . '">';
-							echo '<input type="hidden" name="userID" value="' . $userID . '">';
-							echo '<input type="submit" value="Unenrol" class="btn btn-default" role="button">';
-						echo "</form>";
-					}
-					echo "<div class='course-desc'>$description</div>";
+					echo '<div class="course-btn">';
+						if(has_capability("course:admin",$userID)) { echo '<button type="button" class="btn btn-primary btn-sm" onclick="window.location.href=\'settings.php?id='.$id.'\'">Settings</button>'; }
+						if(!has_capability("course:admin",$userID)) { echo '<button type="button" class="btn btn-primary btn-sm" onclick="window.location.href=\'unenrol.php?courseid='.$id.'&userid='.$userID.'\'">Unenrol</button>'; }
+					echo '</div>';
 					
+					echo "<div class='course-desc'>$description</div>";
+										
 					$dbQueryTopics = $db->prepare("select * from topics where `courseid`=:courseID order by `order`");
 					$dbParamsTopics = array('courseID' => $id);
 					$dbQueryTopics->execute($dbParamsTopics);
@@ -153,8 +160,8 @@
 						$title = $dbRowTopics["name"];
 						$summary = $dbRowTopics["summary"];
 						$visible = $dbRowTopics["visible"];
-						
-						if ($visible == "1")
+												
+						if ($visible == 1)
 						{
 							echo '<br><div class="p-3 mb-2 bg-light text-dark">
 								<h3>'.$title.'</h3>

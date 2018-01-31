@@ -112,7 +112,7 @@
 					<small id="courseNameHelp" class="form-text text-muted">Your course name must be between 5-50 characters</small>
 				</div>
 			</div>
-			
+			<!--
 			<div class="form-row">
 				<div class="form-group col-md-12">
 					<div class="form-check">
@@ -200,7 +200,7 @@
 					</select>
 				</div>
 			</div>
-			
+			-->
 			<div class="form-row">
 				<div class="form-group col-md-12">
 					<label for="description">Course description</label>
@@ -225,7 +225,7 @@
 				</div>
 			</div>
 			
-			<input type="submit" />
+			<input class="btn btn-primary" type="submit" />
 		</form>
 	  </div>
 	  

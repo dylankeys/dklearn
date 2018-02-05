@@ -33,10 +33,15 @@
 
         while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC))
         {
-           $username=$dbRow["username"];
-		   $fullname=$dbRow["fullname"];
-		   $profileimage=$dbRow["profileimage"];
-		   $timestamp=$dbRow["lastlogin"];
+			$profileimage=$dbRow["profileimage"];
+			$username=$dbRow["username"];
+			$fullname=$dbRow["fullname"];
+			$password=$dbRow["password"];
+			$email=$dbRow["email"];
+			$bio=$dbRow["bio"];
+			$country=$dbRow["country"];
+			$dob=$dbRow["dob"];
+			$timestamp=$dbRow["lastlogin"];
         }
 		
 		$lastlogin = gmdate("Y-m-d H:i:s", $timestamp);
@@ -103,26 +108,55 @@
 			<button type="button" class="btn btn-primary btn-sm" style="float:right" onclick="window.location.href='killSession.php'">Log off</button>
 
 			<br><br>
-		  
-			<h1><?php echo $fullname; ?></h1>
-
-			<img src="<?php echo $profileimage; ?>" alt="Profile Image" class="rounded">
+			
+			<ul class="nav nav-tabs">
+			  <li class="nav-item">
+				<a class="nav-link active" href="../profile">Profile</a>
+			  </li>
+			  <li class="nav-item">
+				<a class="nav-link" href="edit.php">Edit</a>
+			  </li>
+			  <li class="nav-item">
+				<a class="nav-link" href="preferences.php">Preferences</a>
+			  </li>
+			</ul>
 			
 			<br>
-			<p>Last login: <strong><?php echo $lastlogin; ?></strong></p>
-			<br>
-			<h3>Edit Profile</h3>
-			<form>
-				<div class="form-group">
-					<label for="gravitarEmail">Gravitar Email Address</label>
-					<input type="email" class="form-control" id="gravitarEmail" aria-describedby="gravitarEmailHelp" placeholder="Enter Gravitar email">
-					<small id="gravitarEmailHelp" class="form-text text-muted">If you do not have a Gravitar, you can create one <a href="https://en.gravatar.com/">here</a></small>
+		  
+			<h1><?php echo $fullname; ?></h1>
+			
+			<div class="profile-left">
+				<img src="<?php echo $profileimage; ?>" alt="Profile Image" class="rounded profile-image">
+			
+				<br>
+				<p>Last login: <strong><?php echo $lastlogin; ?></strong></p>
+			</div>
+			
+			<div class="profile-right">
+				
+				<div class="p-3 mb-2 bg-light text-dark">
+					<strong>Bio</strong><br>
+					<?php echo $bio; ?>
 				</div>
 				
-				<button type="submit" class="btn btn-primary">Update Gravitar</button>
-			</form>
+				<table class="table">
+					<tbody>
+						<tr>
+							<th scope="row">Email</th>
+							<td><?php echo $email; ?></td>
+						</tr>
+						<tr>
+							<th scope="row">Country</th>
+							<td><?php echo $country; ?></td>
+						</tr>
+						<tr>
+							<th scope="row">Date of birth</th>
+							<td><?php echo $dob; ?></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 			<br>
-
         </div>
 
       <footer>

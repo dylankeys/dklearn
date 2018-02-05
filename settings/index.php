@@ -86,12 +86,26 @@
 		</nav>
 
       <div class="container">
-
+		 
+		 <br>
          <h1>Settings</h1>
-         <ul class="list">
-            <li><a href="theme/"><h3>Theme</h3></a></li>
-			<li><a href="slideshow/"><h3>Slideshow</h3></a></li>
-         </ul>
+		 
+		 <div class="jumbotron jumbotron-fluid slideshow-right">
+				<div class="container">
+					<h1 class="display-4">Rocket Learn</h1>
+					<p class="lead">Version: 0.05</p>
+				</div>
+		</div>
+		 
+		 <div class="list-group slideshow-left">
+			<a href="slideshow/" class="list-group-item list-group-item-action">Slideshow</a>
+			<a href="theme/" class="list-group-item list-group-item-action">Theme</a>
+			<a href="users/" class="list-group-item list-group-item-action">Users</a>
+		</div>
+		
+		
+			
+	
 
       </div>
 	  

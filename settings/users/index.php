@@ -35,7 +35,7 @@
         }
 	?>
 	
-    <title><?php echo $sitename;?> | Theme Settings</title>
+    <title><?php echo $sitename;?> | User Management</title>
 	
 	<!--DK CSS-->
 	<link href="../../styles.css" rel="stylesheet">
@@ -86,53 +86,125 @@
 		</nav>
 
       <div class="container">
-
-         <h1>Theme settings</h1>
-
+		 <br>
+         <h1>User management</h1>
+		 <br>
+		
          <?php
 
-            if (isset($_POST["theme"]))
+            if (isset($_GET["delete"]) && $_GET["delete"] == 1)
             {
-				$themevalue = $_POST["theme"];
-				$dbQuery=$db->prepare("update config set value=:theme where setting='themecolour'");
-         		$dbParams=array('theme'=>$themevalue);
+				$deleteid = $_GET["userid"];
+				
+				echo '<h3>Are you sure?</h3>';
+				echo '<p>All related user data will be deleted from the system (incl. enrolments and completions). Proceed with caution.</p>';
+				echo '<form class="confirm-delete" method="post" action="index.php">
+						<input type="hidden" name="deleteid" value="'.$deleteid.'" />
+						<button type="submit" class="btn btn-success">Yes</button>
+					</form>';
+				echo '<button type="button" onclick="window.location.href=\'index.php\'" class="btn btn-danger confirm-delete">No</button>';
+			}
+			else if(isset($_POST["deleteid"]))
+			{
+				$deleteid = $_POST["deleteid"];
+				
+				$dbQuery=$db->prepare("delete from users where id=:id");
+         		$dbParams=array('id'=>$deleteid);
          		$dbQuery->execute($dbParams);
 				
-				echo "<script>window.location.href = 'index.php?success=1'</script>";
-            }
-			
-
-			if(isset($_GET["success"]) && $_GET["success"] == 1)
-			{				
-				echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
-						<strong>Success!</strong> Profile updated!
-						<button type="button" class="close" data-dismiss="alert" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-						</button>
-					</div>';
+				$dbQuery=$db->prepare("delete from enrolments where userid=:id");
+         		$dbQuery->execute($dbParams);
+				
+				$dbQuery=$db->prepare("delete from role_assignments where userid=:id");
+         		$dbQuery->execute($dbParams);
+				
+				echo "<script>window.location.href = 'index.php?success=deleted'</script>";
 			}
-		?>
+			else if (isset($_GET["edit"]) && $_GET["edit"] == 1)
+            {
+				$deleteid = $_GET["userid"];
+				$dbQuery=$db->prepare("delete from users where id=:id");
+         		$dbParams=array('id'=>$deleteid);
+         		$dbQuery->execute($dbParams);
+				
+				echo "<script>window.location.href = 'index.php?success=deleted'</script>";
+            }
+			else 
+			{
 
-         <form action="index.php" method="post">
-            <label for="theme">Theme colour:</label>
-            <select name="theme">
+				if(isset($_GET["success"]))
+				{
+					if ($_GET["success"] == "deleted")
+					{
+						echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
+							<strong>Success!</strong> User deleted.
+							<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+							</button>
+						</div>';
+					}
+					else if ($_GET["success"] == "edited")
+					{
+						echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
+							<strong>Success!</strong> User edited.
+							<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+							</button>
+						</div>';
+					}
+				}
+		?>
+		
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th scope="col">Full name</th>
+					<th scope="col">Username</th>
+					<th scope="col">Email address</th>
+					<th scope="col">Country</th>
+					<th scope="col">Last login</th>
+					<th scope="col">Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+			
                <?php
-                  $dbQuery=$db->prepare("select * from themes");
+                  $dbQuery=$db->prepare("select * from users");
    			      $dbQuery->execute();
 
       		      while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC)) {
-                     $themecolour = $dbRow["theme"];
-                     $themename = $dbRow["themename"];
+                    $id=$dbRow["id"];
+                    $username=$dbRow["username"];
+					$fullname=$dbRow["fullname"];
+					$email=$dbRow["email"];
+					$country=$dbRow["country"];
+					$timestamp=$dbRow["lastlogin"];
+					$lastlogin = gmdate("Y-m-d H:i:s", $timestamp);
+					
+					if ($lastlogin == "1970-01-01 00:00:00")
+					{
+						$lastlogin = "Never logged in";
+					}
 
-                     echo '<option style="background-image:url(../../images/'.$themename.')" value="'.$themename.'">'.$themecolour.'</option>';
+                     echo '<tr>
+							<td>'.$fullname.'</td>
+							<td>'.$username.'</td>
+							<td>'.$email.'</td>
+							<td>'.$country.'</td>
+							<td>'.$lastlogin.'</td>
+							<th scope="row"><a href="index.php?edit=1&userid='.$id.'">Edit</a> | <a href="index.php?delete=1&userid='.$id.'">Delete</a></th>
+						</tr>';
                   }
                ?>
-            </select>
-          <br><input type="submit" />
-       </form>
-
+			
+			</tbody>
+		</table>
+		
+		<?php
+			}
+		?>
       </div>
-	  
+	  <br>
 	  <footer>
 		<p class="copyright"><?php echo $sitename ." | &copy ". date("Y"); ?></p>
 		<ul class="v-links">

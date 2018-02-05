@@ -1,3 +1,34 @@
+<?php
+	include("../../config.php");
+	
+	if (isset($_POST["slideUpdate"]))
+	{
+		$id = $_POST["slideID"];
+		$image = $_POST["slideImage"];
+		$heading = $_POST["slideHeading"];
+		$text = $_POST["slideText"];
+		
+		$dbQuery=$db->prepare("update slideshow set image=:image, heading=:heading, text=:text where id=:id");
+		$dbParams=array('id'=>$id,'image'=>$image,'heading'=>$heading,'text'=>$text);
+		$dbQuery->execute($dbParams);
+		
+		echo "<script>window.location.href = 'index.php?success=1'</script>";
+	}
+	else if(isset($_POST["slideAdd"]))
+	{
+		$image = $_POST["slideImage"];
+		$heading = $_POST["slideHeading"];
+		$text = $_POST["slideText"];
+		
+		$dbQuery=$db->prepare("insert into slideshow values(null,:image,:heading,:text)");
+		$dbParams=array('image'=>$image,'heading'=>$heading,'text'=>$text);
+		$dbQuery->execute($dbParams);
+		
+		echo "<script>window.location.href = 'index.php?success=1'</script>";
+	}
+	else
+	{
+?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -7,7 +38,7 @@
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
 
 	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <meta name="description" content="">
+    <meta name="slideText" content="">
     <meta name="author" content="">
     <link rel="icon" href="../../images/favicon.ico">
 
@@ -86,69 +117,164 @@
 		</nav>
 
       <div class="container">
-
-         <h1>Slideshow image source URLs</h1>
-
-         <?php
-
-            if (isset($_POST["slideshowImages"]))
-            {
-				$time=time();
-				$slide1 = $_POST["slideOne"];
-				$dbQuery=$db->prepare("update config set value=:slideOne, lastmodified=:time where setting='slideone'");
-         		$dbParams=array('slideOne'=>$slide1,'time'=>$time);
-         		$dbQuery->execute($dbParams);
-				
-				$slide2 = $_POST["slideTwo"];
-				$dbQuery=$db->prepare("update config set value=:slideTwo, lastmodified=:time where setting='slidetwo'");
-         		$dbParams=array('slideTwo'=>$slide2,'time'=>$time);
-         		$dbQuery->execute($dbParams);
-				
-				$slide3 = $_POST["slideThree"];
-				$dbQuery=$db->prepare("update config set value=:slideThree, lastmodified=:time where setting='slidethree'");
-         		$dbParams=array('slideThree'=>$slide3,'time'=>$time);
-         		$dbQuery->execute($dbParams);
-				
-				echo "<script>window.location.href = 'index.php?success=1'</script>";
-            }
-			
+		
+		<br>
+		
+		<?php
 			if(isset($_GET["success"]))
-			{
-				echo "<h1 style=\"background:green\">Slideshow images updated!<span style='float:right;font-size:20px;'><a href='index.php'>x</a>&nbsp;</span></h1>";
+			{				
+				echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
+						<strong>Success!</strong> Slideshow updated!
+						<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+						</button>
+					</div>';
 			}
 
+			if (isset($_POST["slideSelect"]))
+			{
+				echo '<nav aria-label="breadcrumb">
+						<ol class="breadcrumb">
+						<li class="breadcrumb-item"><a href="../">Settings</a></li>
+							<li class="breadcrumb-item"><a href="index.php">Slideshow settings</a></li>
+							<li class="breadcrumb-item active" aria-current="page">Edit slide</li>
+						</ol>
+					</nav>';
+			}
+			else if(isset($_GET["slide"]) && $_GET["slide"]=="add")
+			{
+				echo '<nav aria-label="breadcrumb">
+						<ol class="breadcrumb">
+						<li class="breadcrumb-item"><a href="../">Settings</a></li>
+							<li class="breadcrumb-item"><a href="index.php">Slideshow settings</a></li>
+							<li class="breadcrumb-item active" aria-current="page">Add slide</li>
+						</ol>
+					</nav>';
+			}
+			else {
+				echo '<nav aria-label="breadcrumb">
+						<ol class="breadcrumb">
+						<li class="breadcrumb-item"><a href="../">Settings</a></li>
+							<li class="breadcrumb-item active" aria-current="page">Slideshow settings</li>
+						</ol>
+					</nav>';
+			}
+		?>
+		
+        <h1>Slideshow settings</h1>
+
+         <?php
+			if (!isset($_POST["slideSelect"]) && !isset($_GET["slide"]))
+			{
          ?>
+		<form method="post" action="index.php">
+			<div class="form-row">
+				<div class="form-group col-md-12">
+					<label for="slideSelect">Select a slide to edit:</label>
+					<select id="slideSelect" name='slideSelect' class="form-control" onchange='this.form.submit()'>
+						
+						<option selected>Choose from the options...</option>
+						<?php 
+							$dbQuery=$db->prepare("select * from slideshow");
+							$dbQuery->execute();
 
-         <form action="index.php" method="post">
-            
-               <?php
-                  $dbQuery=$db->prepare("select * from config");
-   			      $dbQuery->execute();
+							while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC)) {
+								$slideid = $dbRow["id"];
+								$heading = $dbRow["heading"];
+								
+								echo '<option value="'.$slideid.'">Slide '.$slideid.' ('.$heading.')</option>';
+							}
+							
+							
+						?>
+					</select>
+					<noscript><input type="submit" value="Submit"></noscript>
+				</div>
+			</div>
+		</form>
+		<p style="text-align:center;">or</p>
+		<button type="button" onclick="window.location.href='index.php?slide=add'" class="btn btn-primary btn-lg btn-block">Add a new slide</button>
+		<br>
+		
+		<?php
+			}
+			else if (isset($_POST["slideSelect"]))
+			{
+				$slideid = $_POST["slideSelect"];
+				
+				$dbQuery=$db->prepare("select * from slideshow where id=:id");
+				$dbParams = array('id'=>$slideid);
+				$dbQuery->execute($dbParams);
 
-      		      while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC)) {
-                     $setting = $dbRow["setting"];
-					 
-					 if ($setting == "slideone") {
-						$slideOne = $dbRow["value"];
-						echo '<label for="slideOne">Slide one:</label>
-								<input type="text" name="slideOne" value="'.$slideOne.'">';
-					 }
-					 else if ($setting == "slidetwo") {
-						$slideTwo = $dbRow["value"];
-						echo '<label for="slideTwo">Slide two:</label>
-								<input type="text" name="slideTwo" value="'.$slideTwo.'">';
-					 }
-					 else if ($setting == "slidethree") {
-						$slideThree = $dbRow["value"];
-						echo '<label for="slideThree">Slide three:</label>
-								<input type="text" name="slideThree" value="'.$slideThree.'">';
-					 }
-                  }
-               ?>
-            <input type="hidden" name="slideshowImages" />
-          <br><input type="submit" />
-       </form>
-
+				while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC)) {
+					$image = $dbRow["image"];
+					$heading = $dbRow["heading"];
+					$text = $dbRow["text"];
+				}
+				
+				echo '<img class="slide-img-preview" src="'.$image.'" alt="'.$heading.'" class="rounded" />';
+				
+				echo '<form method="post" action="index.php">
+						<div class="form-row">
+							<div class="form-group col-md-12">
+								<label for="slideImage">Slide image source</label>
+								<input type="text" class="form-control" id="slideImage" name="slideImage" value="'.$image.'" >
+							</div>
+						</div>
+						
+						<div class="form-row">
+							<div class="form-group col-md-12">
+								<label for="slideHeading">Slide heading</label>
+								<input type="text" class="form-control" id="slideHeading" name="slideHeading" value="'.$heading.'" >
+							</div>
+						</div>
+				
+						<div class="form-row">
+							<div class="form-group col-md-12">
+								<label for="slideText">Slide text</label>
+								<textarea class="form-control" id="slideText" name="slideText" rows="5">'.$text.'</textarea>
+							</div>
+						</div>
+						
+						<input type="hidden" name="slideID" value="'.$slideid.'" />
+						<input type="hidden" name="slideUpdate" />
+						<input type="submit" class="btn btn-primary" value="Update slide" />
+					</form>';
+			}
+			else if(isset($_GET["slide"]) && $_GET["slide"]=="add")
+			{
+			
+			?>
+				<form method="post" action="index.php">
+					<div class="form-row">
+						<div class="form-group col-md-12">
+							<label for="slideImage">Image source</label>
+							<input type="text" class="form-control" id="slideImage" name="slideImage">
+						</div>
+					</div>
+						
+					<div class="form-row">
+						<div class="form-group col-md-12">
+							<label for="slideHeading">Slide heading</label>
+							<input type="text" class="form-control" id="slideHeading" name="slideHeading">
+						</div>
+					</div>
+				
+					<div class="form-row">
+						<div class="form-group col-md-12">
+							<label for="slideText">Slide text</label>
+							<textarea class="form-control" id="slideText" name="slideText" rows="5"></textarea>
+						</div>
+					</div>
+						
+					<input type="hidden" name="slideAdd" />
+					<input type="submit" class="btn btn-primary" value="Add slide" />
+				</form>
+		
+		<?php
+			}
+		?>
+		<br>
       </div>
 	  
 	  <footer>
@@ -166,3 +292,6 @@
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous"></script>
 	</body>
 </html>
+<?php
+	}
+?>

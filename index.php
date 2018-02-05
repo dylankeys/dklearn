@@ -79,66 +79,72 @@
 			</span>
 		  </div>
 		</nav>
-		
-		<?php
-			if (isset($_GET["permission"]) && $_GET["permission"]=="0")
-            {
-				echo '<div style="padding:10px"><div class="alert alert-danger alert-dismissible fade show" role="alert">
-						<strong>ERROR!</strong> Invalid permissions to access this page. Please contact the site administrator if this was a system fault.
-						<button type="button" class="close" data-dismiss="alert" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-						</button>
-					</div></div>';
-            }
-
-			$dbQuery=$db->prepare("select * from config");
-			$dbQuery->execute();
-
-			while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC)) {
-				$setting = $dbRow["setting"];
-					 
-				if ($setting == "slideone") {
-					$slideOne = $dbRow["value"];
-				}
-				
-				if ($setting == "slidetwo") {
-					$slideTwo = $dbRow["value"];
-				}
-				
-				if ($setting == "slidethree") {
-					$slideThree = $dbRow["value"];
-				}
-			}
-		?>
 
 		<div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
 		  <ol class="carousel-indicators">
-			<li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
-			<li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
-			<li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+			<?php
+				$dbQuery=$db->prepare("select * from slideshow");
+				$dbQuery->execute();
+				$rows = $dbQuery->rowCount();
+				
+				for($count=0;$count<$rows;$count++)
+				{
+					if($count == 0){
+						echo '<li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>';
+					}
+					else{
+						echo '<li data-target="#carouselExampleIndicators" data-slide-to="'.$count.'"></li>';
+					}
+				}			
+			?>
 		  </ol>
+		  
 		  <div class="carousel-inner">
+		  
+			<?php
+				
+				$dbQuery=$db->prepare("select * from slideshow");
+				$dbQuery->execute();
+
+				while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC)) {
+					$slideid = $dbRow["id"];
+					$image = $dbRow["image"];
+					$heading = $dbRow["heading"];
+					$text = $dbRow["text"];
+					
+					if ($slideid == 1){
+						echo '<div class="carousel-item active">';
+					}
+					else {
+						echo '<div class="carousel-item">';
+					}
+					echo '<img class="d-block w-100" src="'.$image.'" alt="'.$heading.'">
+							<div class="carousel-caption d-none d-md-block">
+								<h5>'.$heading.'</h5>
+								<p>'.$text.'</p>
+							</div>
+						</div>';
+				}
+			?>
+		  <!--
+		  
 			<div class="carousel-item active">
-			  <?php echo '<img class="d-block w-100" src="'.$slideOne.'" alt="Slide 1">'; ?>
+			  <img class="d-block w-100" src="" alt="Slide 1">
 			  <div class="carousel-caption d-none d-md-block">
 				<h5>Slide 1</h5>
 				<p>Lorem ipsum</p>
 			  </div>
 			</div>
+			
 			<div class="carousel-item">
-			  <?php echo '<img class="d-block w-100" src="'.$slideTwo.'" alt="Slide 2">'; ?>
-			  <div class="carousel-caption d-none d-md-block">
-				<h5>Slide 2</h5>
-				<p>Lorem ipsum</p>
-			  </div>
-			</div>
-			<div class="carousel-item">
-			  <?php echo '<img class="d-block w-100" src="'.$slideThree.'" alt="Slide 3">'; ?>
+			  <img class="d-block w-100" src="" alt="Slide 3">
 			  <div class="carousel-caption d-none d-md-block">
 				<h5>Slide 3</h5>
 				<p>Lorem ipsum</p>
 			  </div>
 			</div>
+		  
+		  -->
 		  </div>
 		  <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
 			<span class="carousel-control-prev-icon" aria-hidden="true"></span>

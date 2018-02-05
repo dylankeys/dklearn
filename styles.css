@@ -18,6 +18,7 @@ footer {
 	bottom:0;
 	width:100%;
 	min-height: 150px;
+	clear: both;
 }
 ul.v-links {
 	float:right;
@@ -35,5 +36,40 @@ a.dimmed, a.dimmed:hover {
 	color: #a8abaf;
 }
 
+.slide-img-preview {
+	padding-top: 10px;
+	padding-bottom: 10px;
+	width: inherit;
+}
+
+.profile-left {
+	float: left;
+	width: 33%;
+	
+}
+
+.profile-right {
+	float: right;
+	width: 67%;
+}
+
+.slideshow-left {
+	float: left;
+	width: 30%;
+}
+
+.slideshow-right {
+	text-align: right;
+	width: 68%;
+	float: right;
+}
+
+.profile-image {
+	width: 85%;
+}
+
+.confirm-delete {
+	display: inline;
+}
 
 

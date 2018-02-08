@@ -2,6 +2,11 @@
     session_start();
     include ("../config.php");
 	include("../lib.php");
+	
+	if(!has_capability("site:config",$userID))
+	{
+		echo "<script>window.location.href = '../../index.php?permission=0'</script>";
+	}
 ?>
 <!DOCTYPE html>
 <html lang="en">

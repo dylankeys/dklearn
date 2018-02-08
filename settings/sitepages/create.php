@@ -7,13 +7,13 @@
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
 
 	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <meta name="description" content="">
+    <meta name="pageContent" content="">
     <meta name="author" content="">
-    <link rel="icon" href="../images/favicon.ico">
+    <link rel="icon" href="../../images/favicon.ico">
 
 	<?php
-		include("../config.php");
-		include("../lib.php");
+		include("../../config.php");
+		include("../../lib.php");
 		session_start();
         $userID=$_SESSION["currentUserID"];
 		
@@ -33,17 +33,32 @@
 		   $fullname=$dbRow["fullname"];
 		   $profileimage=$dbRow["profileimage"];
         }
+		
+		if (isset($_POST["submit"]))
+		{
+			$title = $_POST["pageName"];
+			$content = $_POST["pageContent"];
+			$visiblity = $_POST["visiblity"];
+			
+			$dbQuery=$db->prepare("insert into site_pages values (null,:title,:content,:visiblity)");
+			$dbParams=array('title'=>$title, 'content'=>$content, 'visiblity'=>$visiblity);
+			$dbQuery->execute($dbParams);
+			
+			echo "<script>window.location.href = 'index.php?success=created'</script>";
+		}
 	?>
 	
-    <title><?php echo $sitename;?> | Settings</title>
+    <title><?php echo $sitename;?> | Create a page</title>
 	
 	<!--DK CSS-->
-	<link href="../styles.css" rel="stylesheet">
+	<link href="../../styles.css" rel="stylesheet">
+	
+	<!--CKEDITOR JS-->
+	<script src="https://cdn.ckeditor.com/4.8.0/standard/ckeditor.js"></script>
 	
 	</head>
 
 	<body>
-
 		<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1E88FF;">
 		<!--<nav class="navbar navbar-expand-lg navbar-light bg-light">-->
 		  <a class="navbar-brand" href="../index.php"><?php echo $sitename;?></a>
@@ -53,32 +68,32 @@
 		  <div class="collapse navbar-collapse" id="navbarText">
 			<ul class="navbar-nav mr-auto">
 			  <li class="nav-item">
-				<a class="nav-link" href="../">Home</a>
-			  </li>
-			  <li class="nav-item">
-				<a class="nav-link" href="../course/">Courses</a>
-			  </li>
-			  <li class="nav-item">
-				<a class="nav-link" href="../dashboard/">Dashboard</a>
-			  </li>
-			  <li class="nav-item">
-				<a class="nav-link" href="../contact/">Contact</a>
-			  </li>
-			  <li class="nav-item">
-				<a class="nav-link" href="../profile/">Profile</a>
+				<a class="nav-link" href="../../">Home</a>
 			  </li>
 			  <li class="nav-item active">
-				<?php if (has_capability("site:config",$userID)) { echo '<a class="nav-link" href="../settings/">Administration</a>'; } ?>
+				<a class="nav-link" href="../../course/">Courses</a>
+			  </li>
+			  <li class="nav-item">
+				<a class="nav-link" href="../../dashboard/">Dashboard</a>
+			  </li>
+			  <li class="nav-item">
+				<a class="nav-link" href="../../contact/">Contact</a>
+			  </li>
+			  <li class="nav-item">
+				<a class="nav-link" href="../../profile/">Profile</a>
+			  </li>
+			  <li class="nav-item">
+				<?php if (has_capability("site:config",$userID)) { echo '<a class="nav-link" href="../../settings/">Administration</a>'; } ?>
 			  </li>
 			</ul>
 			<span class="navbar-text">
 			
 			  <?php
 				if (isset($username)) {
-					echo "<img src='".$profileimage."' width='28px' alt='Profile Image' class='rounded-circle'>&nbsp;<a href='../profile/'>".$fullname." (<a href='../profile/killSession.php'>Log out</a>)</a>";
+					echo "<img src='".$profileimage."' width='28px' alt='Profile Image' class='rounded-circle'>&nbsp;<a href='../profile/'>".$fullname." (<a href='../../profile/killSession.php'>Log out</a>)</a>";
 				}
 				else {
-					echo "<a href='../login/'>Log in or sign up</a>";
+					echo "<a href='../../login/'>Log in or sign up</a>";
 				}
 			  ?>
 			</span>
@@ -86,30 +101,45 @@
 		</nav>
 
       <div class="container">
-		 
-		 <br>
-         <h1>Settings</h1>
-		 
-		 <div class="jumbotron jumbotron-fluid slideshow-right">
-				<div class="container">
-					<h1 class="display-4">Rocket Learn</h1>
-					<p class="lead">Version: 0.05</p>
-				</div>
-		</div>
-		 
-		 <div class="list-group slideshow-left">
-			<a href="sitepages/" class="list-group-item list-group-item-action">Site Pages</a>
-			<a href="slideshow/" class="list-group-item list-group-item-action">Slideshow</a>
-			<a href="theme/" class="list-group-item list-group-item-action">Theme</a>
-			<a href="users/" class="list-group-item list-group-item-action">Users</a>
-		</div>
-		
-		
-			
-	
-
-      </div>
 	  
+	  <br>
+	  <h1>Create a page</h1>
+	
+		<br>
+		<form method="post" action="create.php">
+			<div class="form-row">
+				<div class="form-group col-md-12">
+					<label for="pageName">Page name</label>
+					<input type="text" class="form-control" id="pageName" name="pageName" placeholder="Page name">
+				</div>
+			</div>
+			
+			<div class="form-row">
+				<div class="form-group col-md-12">
+					<label for="pageContent">Page content</label>
+					<textarea class="form-control" id="pageContent" name="pageContent" rows="10"></textarea>
+					
+					<script>
+						CKEDITOR.replace( 'pageContent' );
+					</script>
+				</div>
+			</div>
+			
+			<div class="form-row">
+				<div class="form-group col-md-12">
+					<label for="visiblity">Page visiblity</label>
+					<select id="visiblity" name="visiblity" class="form-control">
+						<option value="1" selected>Show</option>
+						<option value="0">Hide</option>
+					</select>
+				</div>
+			</div>
+			
+			<input class="btn btn-primary" value="Create page" name="submit" type="submit" />
+		</form>
+	  </div>
+	  
+	  <br>
 	  <footer>
 		<p class="copyright"><?php echo $sitename ." | &copy ". date("Y"); ?></p>
 		<ul class="v-links">

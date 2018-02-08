@@ -96,7 +96,16 @@
             if (isset($_GET["course"]) && $_GET["course"]=="noid")
             {
 				echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
-						<strong>ERROR!</strong> No course ID selected. Please contact the site administrator if this was a system fault.
+						<strong>ERROR!</strong> Invalid URL. No ID selected. Please contact the system administrator if this was a system fault.
+						<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+						</button>
+					</div>';
+            }
+			if (isset($_GET["course"]) && $_GET["course"]=="hidden")
+            {
+				echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+						<strong>ERROR!</strong> Access denied. Please contact the system administrator if this was a system fault.
 						<button type="button" class="close" data-dismiss="alert" aria-label="Close">
 						<span aria-hidden="true">&times;</span>
 						</button>

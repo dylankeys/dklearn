@@ -1,3 +1,8 @@
+<?php
+	session_start();
+	include("../config.php");
+	include("../lib.php");
+?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -5,6 +10,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
+	<script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js" integrity="sha384-SlE991lGASHoBfWbelyBPLsUlwY1GwNDJo3jSJO04KZ33K2bwfV9YBauFfnzvynJ" crossorigin="anonymous"></script>
 
 	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <meta name="description" content="">
@@ -12,28 +18,23 @@
     <link rel="icon" href="../images/favicon.ico">
 
 	<?php
-		include("../config.php");
-		include("../lib.php");
-		session_start();
-		
 		$userID=$_SESSION["currentUserID"];
 
 			if (isset($_GET["id"]))
 			{
                 if($_GET["id"]==null)
                 {
-                    echo "<script>window.location.href = 'index.php?course=noid'</script>";
+                    error("Invalid URL. No course ID set.","../");
                 }
-				$id = $_GET["id"];
-
+				$currentCourseID = $_GET["id"];
+				
                 if (!isset($_SESSION["currentUserID"]))
                 {
-                    //header("Location: login.php?failCode=3");
-                    echo "<script>window.location.href = '../login/index.php?failCode=3&courseid=". $id ."'</script>";
+                    redirect("../login/index.php?failCode=3&courseid=". $currentCourseID);
                 }
 
 				$dbQuery=$db->prepare("select * from courses where id=:id");
-				$dbParams=array('id'=>$id);
+				$dbParams=array('id'=>$currentCourseID);
 				$dbQuery->execute($dbParams);
 
 				while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC))
@@ -45,7 +46,7 @@
 			}
 			else
 			{
-				echo "<script>window.location.href = 'index.php?course=noid'</script>";
+				error("Invalid URL. No course ID set.","../");
 			}
 			
 		
@@ -114,10 +115,8 @@
       <div class="container">
 		<?php
 
-			$id = $_GET["id"];
-
 			$dbQuery=$db->prepare("select * from courses where id=:id");
-			$dbParams=array('id'=>$id);
+			$dbParams=array('id'=>$currentCourseID);
 			$dbQuery->execute($dbParams);
 
    			while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC)) {
@@ -126,37 +125,43 @@
                 $usemedia = $dbRow["usemedia"];
                 $media = $dbRow["media"];
 				
-                echo "<h1>$title</h1>";
+                echo "<h1>".$title."</h1>";
 				
-					/*if (!has_capability("course:admin",$userID)) {
-							echo "<form style='float:right;padding:10px;' name='enrol' method='post' action='unenrol.php'>";
-								echo '<input type="hidden" name="courseID" value="' . $id . '">';
-								echo '<input type="hidden" name="userID" value="' . $userID . '">';
-								echo '<input type="submit" value="Unenrol" class="btn btn-primary btn-sm" role="button">';
-							echo "</form>";
-					}*/
-				//echo '</div>';
-				
-                $dbQuery2 = $db->prepare("select * from enrolments where userID=:userID AND courseID=:courseID");
-                $dbParams2 = array('userID' => $userID, 'courseID' => $id);
-                $dbQuery2->execute($dbParams2);
-                $rows = $dbQuery2->rowCount();
+                $dbQueryEnrolments = $db->prepare("select * from enrolments where userID=:userID AND courseID=:courseID");
+                $dbParamsEnrolments = array('userID' => $userID, 'courseID' => $currentCourseID);
+                $dbQueryEnrolments->execute($dbParamsEnrolments);
+                $rows = $dbQueryEnrolments->rowCount();
 
                 if ($rows>0 || has_capability("course:admin",$userID)) {
 					
+					$dbRowEnrolments=$dbQueryEnrolments->fetch(PDO::FETCH_ASSOC);
+					$role = $dbRowEnrolments["role"];
+					
 					echo '<div class="course-btn">';
-						if(has_capability("course:admin",$userID)) { echo '<button type="button" class="btn btn-primary btn-sm" onclick="window.location.href=\'settings.php?id='.$id.'\'">Settings</button>'; }
-						if(!has_capability("course:admin",$userID)) { echo '<button type="button" class="btn btn-primary btn-sm" onclick="window.location.href=\'unenrol.php?courseid='.$id.'&userid='.$userID.'\'">Unenrol</button>'; }
+						if(has_capability("course:admin",$userID) || $role == "teacher") { echo '<button type="button" class="btn btn-primary btn-sm" onclick="window.location.href=\'settings.php?id='.$currentCourseID.'\'">Settings</button>&nbsp;'; }
+						if(has_capability("course:admin",$userID) || $role == "teacher") { echo '<button type="button" class="btn btn-primary btn-sm" onclick="window.location.href=\'enrolments.php?id='.$currentCourseID.'\'">Enrolments</button>&nbsp;'; }
+						if(has_capability("course:admin",$userID) || $role == "teacher") { echo '<button type="button" class="btn btn-primary btn-sm" onclick="window.location.href=\'completion.php?id='.$currentCourseID.'\'">Completion</button>&nbsp;'; }
+						if(!has_capability("course:admin",$userID) || $role == "teacher") { echo '<button type="button" class="btn btn-primary btn-sm" onclick="window.location.href=\'unenrol.php?courseid='.$currentCourseID.'&userid='.$userID.'\'">Unenrol</button>&nbsp;'; }
 					echo '</div>';
 					
-					echo "<div class='course-desc'>$description</div>";
-										
+					echo "<div class='course-desc'>".$description."</div>";
+					
+					if(!has_capability("course:admin",$userID) && $role != "teacher")
+					{
+						$courseProgress = checkProgress($currentCourseID, $userID);
+					
+						echo '<br><div class="progress" style="height: 15px;">
+								<div class="progress-bar" role="progressbar" style="width: '.$courseProgress.'%;" aria-valuenow="'.$courseProgress.'" aria-valuemin="0" aria-valuemax="100">'.$courseProgress.'%</div>
+							</div>';
+					}
+									
 					$dbQueryTopics = $db->prepare("select * from topics where `courseid`=:courseID order by `order`");
-					$dbParamsTopics = array('courseID' => $id);
+					$dbParamsTopics = array('courseID' => $currentCourseID);
 					$dbQueryTopics->execute($dbParamsTopics);
 					
 					while ($dbRowTopics = $dbQueryTopics->fetch(PDO::FETCH_ASSOC)) {
 						
+						$topicid = $dbRowTopics["id"];
 						$title = $dbRowTopics["name"];
 						$summary = $dbRowTopics["summary"];
 						$visible = $dbRowTopics["visible"];
@@ -166,20 +171,137 @@
 							echo '<br><div class="p-3 mb-2 bg-light text-dark">
 								<h3>'.$title.'</h3>
 								<p>'.$summary.'</p>
-								<ul>
-									<li>Element 1</li>
-									<li>Element 2</li>
-									<li>Element 3</li>
-								</ul>
-							</div>';
+								<ul>';							
+									$dbQueryTopicContent = $db->prepare("select elementid from `topic_content` where `topicid`=:topicid");
+									$dbParamsTopicContent = array('topicid' => $topicid);
+									$dbQueryTopicContent->execute($dbParamsTopicContent);
+									
+									while ($dbRowTopicContent = $dbQueryTopicContent->fetch(PDO::FETCH_ASSOC)) {
+										$elementid = $dbRowTopicContent["elementid"];
+										
+										$dbQueryElement=$db->prepare("select * from elements where id=:elementid");
+										$dbParamsElement=array('elementid'=>$elementid);
+										$dbQueryElement->execute($dbParamsElement);
+										
+										while ($dbRowElement = $dbQueryElement->fetch(PDO::FETCH_ASSOC)) {
+											$typeid = $dbRowElement["typeid"];
+											$contentid = $dbRowElement["contentid"];
+											
+											$dbQueryElementType=$db->prepare("select * from elements_type where id=:typeid");
+											$dbParamsElementType=array('typeid'=>$typeid);
+											$dbQueryElementType->execute($dbParamsElementType);
+											
+											while ($dbRowElementType = $dbQueryElementType->fetch(PDO::FETCH_ASSOC)) {
+												$name = $dbRowElementType["name"];
+												$tablename = $dbRowElementType["tablename"];
+												
+												$dbQueryElementContent=$db->prepare("select * from ".$tablename." where id=:contentid");
+												$dbParamsElementContent=array('contentid'=>$contentid);
+												$dbQueryElementContent->execute($dbParamsElementContent);
+												
+												while ($dbRowElementContent = $dbQueryElementContent->fetch(PDO::FETCH_ASSOC)) {
+													$id = $dbRowElementContent["id"];
+													$title = $dbRowElementContent["title"];
+													$visible = $dbRowElementContent["visible"];
+													
+													$icon = "";
+													
+													switch ($name) {
+														case "assignment":
+															$icon = '<i class="fas fa-clipboard-list"></i>&nbsp;&nbsp;&nbsp;';
+															break;
+														case "quiz":
+															$icon = '<i class="fas fa-question"></i>&nbsp;&nbsp;&nbsp;';
+															break;
+														case "file":
+															$icon = '<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;';
+															break;
+														case "link":
+															$icon = '<i class="fas fa-link"></i>&nbsp;&nbsp;&nbsp;';
+															break;
+														case "page":
+															$icon = '<i class="far fa-file-alt"></i>&nbsp;&nbsp;&nbsp;';
+															break;
+														case "video":
+															$icon = '<i class="fab fa-youtube"></i>&nbsp;&nbsp;&nbsp;';
+															break;
+														default:
+															$icon = '<i class="fas fa-circle"></i>&nbsp;&nbsp;&nbsp;';
+													}
+													
+													if ($visible == 1)
+													{
+														if ($name == "video")
+														{
+															$embed = $dbRowElementContent["embed"];
+
+															echo "<li class='course-element'>".$icon.$title;
+															if(has_capability("course:admin",$userID) || $role == "teacher") { echo "<span class='course-icons'><a href='edit.php?topicid=".$topicid."&action=deleteElement&elementid=".$elementid."&courseid=".$currentCourseID."'><i class='far fa-trash-alt'></i></a></span>"; }
+															echo "</li>";
+
+															echo "<li class='no-bullet'>".$embed."</li>";
+														}
+														else if ($name == "link")
+														{
+															$embed = $dbRowElementContent["embed"];
+
+															echo "<li class='course-element'>".$icon.$embed;
+															if(has_capability("course:admin",$userID) || $role == "teacher") { echo "<span class='course-icons'><a href='edit.php?topicid=".$topicid."&action=deleteElement&elementid=".$elementid."&courseid=".$currentCourseID."'><i class='far fa-trash-alt'></i></a></span>"; }
+															echo "</li>";
+														}
+														else
+														{
+															echo "<li class='course-element'>".$icon."<a href='../element/".$name."/view.php?id=".$id."'>".$title."</a>";
+															if(has_capability("course:admin",$userID) || $role == "teacher") { echo "<span class='course-icons'><a href='../function/editElement?id=".$id."&element=".$name."'><i class='far fa-edit'></i></a>&nbsp;<a href='edit.php?topicid=".$topicid."&action=deleteElement&elementid=".$elementid."&courseid=".$currentCourseID."'><i class='far fa-trash-alt'></i></a></span>"; }
+															echo "</li>";
+														}
+													}
+													else if ($visible == 0 && (has_capability("course:admin",$userID) || $role == "teacher"))
+													{
+														if ($name == "video")
+														{
+															$embed = $dbRowElementContent["embed"];
+
+															echo "<li class='dimmed course-element'>".$icon.$title."<br>".$embed;
+															if(has_capability("course:admin",$userID) || $role == "teacher") { echo "<span class='course-icons'><a href='../function/editElement?id=".$id."&element=".$name."'><i class='far fa-edit'></i></a>&nbsp;<a href='edit.php?topicid=".$topicid."&action=deleteElement&elementid=".$elementid."&courseid=".$currentCourseID."'><i class='far fa-trash-alt'></i></a></span>"; }
+															echo "</li>";
+														}
+														else if ($name == "link")
+														{
+															$embed = $dbRowElementContent["embed"];
+
+															echo "<li class='dimmed course-element'>".$icon.$embed;
+															if(has_capability("course:admin",$userID) || $role == "teacher") { echo "<span class='course-icons'><a href='edit.php?topicid=".$topicid."&action=deleteElement&elementid=".$elementid."&courseid=".$currentCourseID."'><i class='far fa-trash-alt'></i></a></span>"; }
+															echo "</li>";
+														}
+														else
+														{
+															echo "<li class='dimmed course-element'>".$icon."<a href='../element/".$name."/view.php?id=".$id."'>".$title."</a>";
+															if(has_capability("course:admin",$userID) || $role == "teacher") { echo "<span class='course-icons'><a href='../function/editElement?id=".$id."&element=".$name."'><i class='far fa-edit'></i></a>&nbsp;<a href='edit.php?topicid=".$topicid."&action=deleteElement&elementid=".$elementid."&courseid=".$currentCourseID."'><i class='far fa-trash-alt'></i></a></span>"; }
+															echo "</li>";
+														}
+													}
+												}
+											}
+										}
+									}
+									
+							echo '</ul>';
+							
+							if (has_capability("course:admin",$userID) || $role == "teacher") {
+								echo '<div style="float:right"><a href="edit.php?topicid='.$topicid.'&action=edit&courseid='.$currentCourseID.'">Edit</a> | <a href="edit.php?topicid='.$topicid.'&action=delete&courseid='.$currentCourseID.'">Delete</a> | <a href="add.php?action=element&courseid='.$currentCourseID.'&topicid='.$topicid.'">Add an activity or resource to this topic</a></div><br>';
+							}
+							
+							echo '</div>';
 						}
 					}
+					if(has_capability("course:admin",$userID) || $role == "teacher") { echo '<br><a href="add.php?action=topic&courseid='.$currentCourseID.'">Add a topic</a>'; }
 					
                 } else {
 					echo "<div class='course-desc'>$description";
 					
                     echo "<form name='enrol' method='post' action='enrol.php'>";
-                    echo '<input type="hidden" name="courseID" value="' . $id . '">';
+                    echo '<input type="hidden" name="courseID" value="' . $currentCourseID . '">';
                     echo '<input type="hidden" name="userID" value="' . $userID . '">';
                     echo '<br><p style="color:red"><b>You are not enroled on this course!</b></p>';
                     echo '<p>If you\'d like to access this course, please enrol using the button below</p><br>';
@@ -197,11 +319,11 @@
 		<footer>
 		<p class="copyright"><?php echo $sitename ." | &copy ". date("Y"); ?></p>
 		<ul class="v-links">
-			<li>Home</li>
-			<li>Courses</li>
-			<li>Dashboard</li>
-			<li>Contact</li>
-			<li>Profile</li>
+			<li><a href="../">Home</a></li>
+			<li><a href="../course">Courses</a></li>
+			<li><a href="../dashboard">Dashboard</a></li>
+			<li><a href="../contact">Contact</a></li>
+			<li><a href="../profile">Profile</a></li>
 		</ul>
 	  </footer>
 		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>

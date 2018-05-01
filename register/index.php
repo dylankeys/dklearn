@@ -1,3 +1,8 @@
+<?php
+	session_start();
+	include("../config.php");
+	include("../lib.php");
+?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -12,10 +17,12 @@
     <link rel="icon" href="../images/favicon.ico">
 
 	<?php
-		include("../config.php");
-		include("../lib.php");
-		session_start();
         $userID=$_SESSION["currentUserID"];
+		
+		if ($userReg == "0")
+		{
+			error("Self registration has been disabled.", "../");
+		}
 		
 		$dbQuery=$db->prepare("select * from users where id=:id");
         $dbParams = array('id'=>$userID);
@@ -34,6 +41,32 @@
 	
 	<!--DK CSS-->
 	<link href="../styles.css" rel="stylesheet">
+	
+	<script>
+		function validateForm() {
+			var username = document.forms["register"]["username"].value;
+			var fullName = document.forms["register"]["fullName"].value;
+			var pw = document.forms["register"]["pw"].value;
+			var pwConfirm = document.forms["register"]["pwConfirm"].value;
+			var email = document.forms["register"]["email"].value;
+			var day = document.forms["register"]["day"].value;
+			var month = document.forms["register"]["month"].value;
+			var year = document.forms["register"]["year"].value;
+			
+			if (username == "" || fullName == "" || pw == "" || pwConfirm == "" || email == "") {
+				alert("Please fill out all required fields.");
+				return false;
+			}
+			else if (day == "Day" || month == "Month" || year == "Year") {
+				alert("Please enter a valid date of birth.");
+				return false;
+			}
+			else if (pw != pwConfirm) {
+				alert("Passwords must match!");
+				return false;
+			}
+		}
+	</script>
 	
 	</head>
 
@@ -81,42 +114,70 @@
 		</nav>
 
 <div class="container">
-
+	
+	<?php
+		if (isset($_GET["username"]) && $_GET["username"]=="duplicate")
+		{
+			echo '<br><div class="alert alert-danger alert-dismissible fade show" role="alert">
+					<strong>ERROR!</strong> This username already exists, please try again or log in with this account.
+					<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+					</button>
+				</div>';
+		}
+		else if (isset($_GET["email"]) && $_GET["email"]=="duplicate")
+		{
+			echo '<br><div class="alert alert-danger alert-dismissible fade show" role="alert">
+					<strong>ERROR!</strong> This email address already exists, please try again or log in with this account.
+					<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+					</button>
+				</div>';
+		}
+	?>
 
     <h1>Register an account</h1>
 	
 		<br>
-		<form method="post" action="register.php">
+		<form name="register" method="post" onsubmit="return validateForm()" action="register.php">
 		
 			<div class="form-row">
 				<div class="form-group col-md-12">
 					<label for="username">Username</label>
-					<input type="text" class="form-control" id="username" name="username" aria-describedby="usernameHelp" placeholder="Username">
-					<small id="usernameHelp" class="form-text text-muted">Your username must be unique and between 5-15 characters</small>
+					<input type="text" class="form-control" id="username" name="username" pattern=".{5,15}" title="Your username must be unique and between 5-15 characters" aria-describedby="usernameHelp" placeholder="Username">
+					<small id="usernameHelp" class="form-text text-muted"><span class="required">* Required&nbsp;&nbsp;&nbsp;</span>Your username must be unique and between 5-15 characters</small>
 				</div>
 			</div>
 			
 			<div class="form-row">
 				<div class="form-group col-md-12">
 					<label for="fullName">Full name</label>
-					<input type="text" class="form-control" id="fullName" name="fullName" aria-describedby="nameHelp" placeholder="Full name">
-					<small id="nameHelp" class="form-text text-muted">Please enter your full name, maximum 50 characters</small>
+					<input type="text" class="form-control" id="fullName" name="fullName" pattern="[a-zA-Z\s]{1,50}" title="Please enter your full name, maximum 50 characters" aria-describedby="nameHelp" placeholder="Full name">
+					<small id="nameHelp" class="form-text text-muted"><span class="required">* Required&nbsp;&nbsp;&nbsp;</span>Please enter your full name, maximum 50 characters</small>
 				</div>
 			</div>
 			
 			<div class="form-row">
 				<div class="form-group col-md-12">
-					<label for="fullName">Password</label>
-					<input type="password" class="form-control" id="pw" name="pw" aria-describedby="pwHelp" placeholder="Password">
-					<small id="pwHelp" class="form-text text-muted">Must be between 7-50 characters, with at least one character lowercase, uppercase, special and number</small>
+					<label for="password">Password</label>
+					<input type="password" class="form-control" id="pw" name="pw" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{7,50}" title="Must be between 7-50 characters, with at least one character lowercase, uppercase and number" aria-describedby="pwHelp" placeholder="Password">
+					<small id="pwHelp" class="form-text text-muted"><span class="required">* Required&nbsp;&nbsp;&nbsp;</span>Must be between 7-50 characters, with at least one character lowercase, uppercase and number</small>
+				</div>
+			</div>
+			
+			<div class="form-row">
+				<div class="form-group col-md-12">
+					<label for="passwordConfirm">Confirm Password</label>
+					<input type="password" class="form-control" id="pwConfirm" name="pwConfirm" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{7,50}" title="Must be between 7-50 characters, with at least one character lowercase, uppercase and number" aria-describedby="pwHelpConfirm" placeholder="Password">
+					<small id="pwHelpConfirm" class="form-text text-muted"><span class="required">* Required&nbsp;&nbsp;&nbsp;</span>Must identically match the password entered above</small>
 				</div>
 			</div>
 			
 			<div class="form-row">
 				<div class="form-group col-md-12">
 					<label for="email">Email address</label>
-					<input type="email" class="form-control" id="email" name="email" aria-describedby="emailHelp" placeholder="Email address">
-					<small id="emailHelp" class="form-text text-muted">Your email address will be used to pull in your Gravitar profile image, this can be changed in your profile</small>
+					<input type="email" class="form-control" id="email" name="email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$" title="Must be a valid email" aria-describedby="emailHelp" placeholder="Email address">
+					<small id="emailHelp" class="form-text text-muted"><span class="required">* Required&nbsp;&nbsp;&nbsp;</span>Your email address will be used to pull in your Gravitar profile image, this can be changed in your profile</small>
 				</div>
 			</div>
 			
@@ -130,7 +191,7 @@
 			<div class="form-row">
 				<div class="form-group col-md-4">
 					<label for="day">Date of birth</label>
-					<select id="day" name="day" class="form-control">
+					<select id="day" name="day" class="form-control" aria-describedby="dobHelp">
 						<option selected>Day</option>
 						<?php
 							for($loop=1;$loop<32;$loop++)
@@ -139,6 +200,7 @@
 							}
 						?>
 					</select>
+					<small id="dobHelp" class="form-text text-muted"><span class="required">* Required&nbsp;&nbsp;&nbsp;</span></small>
 				</div>
 				<div class="form-group col-md-4">
 					<label for="month">&nbsp;</label>
@@ -433,16 +495,16 @@
 </div>
 
 <br>
-<footer>
+	<footer>
 		<p class="copyright"><?php echo $sitename ." | &copy ". date("Y"); ?></p>
 		<ul class="v-links">
-			<li>Home</li>
-			<li>Courses</li>
-			<li>Dashboard</li>
-			<li>Contact</li>
-			<li>Profile</li>
+			<li><a href="../">Home</a></li>
+			<li><a href="../course">Courses</a></li>
+			<li><a href="../dashboard">Dashboard</a></li>
+			<li><a href="../contact">Contact</a></li>
+			<li><a href="../profile">Profile</a></li>
 		</ul>
-	  </footer>
+	</footer>
 	  
 	  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 	  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>

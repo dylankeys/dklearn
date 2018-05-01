@@ -1,3 +1,8 @@
+<?php
+	session_start();
+	include("../config.php");
+	include("../lib.php");
+?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -12,14 +17,11 @@
     <link rel="icon" href="../images/favicon.ico">
 
 	<?php
-		include("../config.php");
-		include("../lib.php");
-		session_start();
         $userID=$_SESSION["currentUserID"];
 		
 		if(!has_capability("site:config",$userID))
 		{
-			echo "<script>window.location.href = '../../index.php?permission=0'</script>";
+			error("You do not have permission to access this page", "../");
 		}
 		
 		$dbQuery=$db->prepare("select * from users where id=:id");
@@ -91,14 +93,19 @@
          <h1>Settings</h1>
 		 
 		 <div class="jumbotron jumbotron-fluid slideshow-right">
-				<div class="container">
+				<div class="container-jumbo">
 					<h1 class="display-4">Rocket Learn</h1>
 					<p class="lead">Version: 0.05</p>
 				</div>
 		</div>
 		 
 		 <div class="list-group slideshow-left">
-			<a href="sitepages/" class="list-group-item list-group-item-action">Site Pages</a>
+			<a href="config/" class="list-group-item list-group-item-action">Application configuration</a>
+			<a href="courses/" class="list-group-item list-group-item-action">Courses</a>
+			<a href="phpinfo/" class="list-group-item list-group-item-action">PHP Info</a>
+			<a href="reports/" class="list-group-item list-group-item-action">Reporting</a>
+			<a href="sitenews/" class="list-group-item list-group-item-action">Site news</a>
+			<a href="sitepages/" class="list-group-item list-group-item-action">Site pages</a>
 			<a href="slideshow/" class="list-group-item list-group-item-action">Slideshow</a>
 			<a href="theme/" class="list-group-item list-group-item-action">Theme</a>
 			<a href="users/" class="list-group-item list-group-item-action">Users</a>
@@ -113,11 +120,11 @@
 	  <footer>
 		<p class="copyright"><?php echo $sitename ." | &copy ". date("Y"); ?></p>
 		<ul class="v-links">
-			<li>Home</li>
-			<li>Courses</li>
-			<li>Dashboard</li>
-			<li>Contact</li>
-			<li>Profile</li>
+			<li><a href="../">Home</a></li>
+			<li><a href="../course">Courses</a></li>
+			<li><a href="../dashboard">Dashboard</a></li>
+			<li><a href="../contact">Contact</a></li>
+			<li><a href="../profile">Profile</a></li>
 		</ul>
 	  </footer>
 		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>

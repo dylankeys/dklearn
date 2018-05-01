@@ -1,19 +1,20 @@
 <?php
+	session_start();
 	include("../config.php");
+	include("../lib.php");
 	
 	if (isset($_POST["submit"]))
 	{
 		$id=$_POST["id"]; 
 		$title=$_POST["courseName"];
 		$description=$_POST["description"];
-		$topicCount=$_POST["topicCount"];
-		$active=$_POST["active"];
+		$visibility=$_POST["visibility"];
 		
-		$dbQuery=$db->prepare("update courses set `title`=:title, `description`=:description, `topiccount`=:topiccount, `active`=:active where `id`=:id");
-		$dbParams=array('id'=>$id, 'title'=>$title, 'description'=>$description, 'topiccount'=>$topicCount, 'active'=>$active);
+		$dbQuery=$db->prepare("update courses set `title`=:title, `description`=:description, `visibility`=:visibility where `id`=:id");
+		$dbParams=array('id'=>$id, 'title'=>$title, 'description'=>$description,'visibility'=>$visibility);
 		$dbQuery->execute($dbParams);
 		
-		echo "<script>window.location.href = 'view.php?id=".$id."'</script>";
+		redirect("view.php?id=".$id);
 	}
 	else {
 ?>
@@ -31,21 +32,13 @@
     <link rel="icon" href="../images/favicon.ico">
 
 	<?php
-		include("../config.php");
-		include("../lib.php");
-		session_start();
         $userID=$_SESSION["currentUserID"];
-		
-		if(!has_capability("course:admin",$userID))
-		{
-			echo "<script>window.location.href = 'index.php?permission=0'</script>";
-		}
 		
 		if (isset($_GET["id"]))
 		{
             if($_GET["id"]==null)
             {
-                echo "<script>window.location.href = 'index.php?course=noid'</script>";
+				error("No course ID has been supplied in the URL", "../");
             }
 			$id = $_GET["id"];
 
@@ -57,15 +50,25 @@
 			{
 				$title=$dbRow["title"];
 				$description=$dbRow["description"];	
-				$topiccount=$dbRow["topiccount"];	
-				$active=$dbRow["active"];
+				$visibility=$dbRow["visibility"];
 				
 				echo "<title>".$title." | Settings</title>";
 			}
 		}
 		else
 		{
-			echo "<script>window.location.href = 'index.php?course=noid'</script>";
+			error("No course ID has been supplied in the URL", "../");
+		}
+		
+		$dbQueryEnrolments = $db->prepare("select * from enrolments where userID=:userID AND courseID=:courseID");
+		$dbParamsEnrolments = array('userID' => $userID, 'courseID' => $id);
+		$dbQueryEnrolments->execute($dbParamsEnrolments);
+		$dbRowEnrolments=$dbQueryEnrolments->fetch(PDO::FETCH_ASSOC);
+		$role = $dbRowEnrolments["role"];
+		
+		if(!has_capability("course:admin",$userID) && $role != "teacher")
+		{
+			error("You do not have permission to access this page", "../");
 		}
 		
 		$dbQuery=$db->prepare("select * from users where id=:id");
@@ -82,6 +85,9 @@
 	?>
 	
     <title><?php echo $sitename;?> | Courses</title>
+	
+	<!--CKEDITOR JS-->
+	<script src="https://cdn.ckeditor.com/4.8.0/standard/ckeditor.js"></script>
 	
 	<!--DK CSS-->
 	<link href="../styles.css" rel="stylesheet">
@@ -151,23 +157,22 @@
 				<div class="form-group col-md-12">
 					<label for="description">Course description</label>
 					<textarea class="form-control" id="description" name="description" rows="5"><?php echo $description; ?></textarea>
+					
+					<script>
+						CKEDITOR.replace( 'description' );
+					</script>
 				</div>
 			</div>
 			
 			<div class="form-row">
-				<div class="form-group col-md-6">
-					<label for="topicCount">Topics</label>
-					<input type="number" class="form-control" aria-describedby="topicCountHelp" id="topicCount" value="<?php echo $topiccount; ?>" name="topicCount">
-					<small id="topicCountHelp" class="form-text text-muted">Number of topics on this course</small>
-				</div>
-				
-				<div class="form-group col-md-6">
-					<label for="active">Active</label>
-					<select id="active" name="active" aria-describedby="activeHelp" class="form-control">
-						<option value="y" <? if ($active == 'y') { echo "selected"; } ?>>Yes</option>
-						<option value="n" <? if ($active == 'n') { echo "selected"; } ?>>No</option>
+				<div class="form-group col-md-12">
+					<label for="visibility">Course visibility</label>
+					<select id="visibility" name="visibility" aria-describedby="visibilityHelp" class="form-control">
+						<option value="1" <? if ($visibility == '1') { echo "selected"; } ?>>Open</option>
+						<option value="2" <? if ($visibility == '2') { echo "selected"; } ?>>Restricted</option>
+						<option value="0" <? if ($visibility == '0') { echo "selected"; } ?>>Closed</option>
 					</select>
-					<small id="activeHelp" class="form-text text-muted">Is this course active?</small>
+					<small id="visibilityHelp" class="form-text text-muted">Course visibility - Open: open to all users to enrol | Closed: only visible to teachers/admins | Restricted: only visible to enrolled users</small>
 				</div>
 			</div>
 			
@@ -182,11 +187,11 @@
 		<footer>
 		<p class="copyright"><?php echo $sitename ." | &copy ". date("Y"); ?></p>
 		<ul class="v-links">
-			<li>Home</li>
-			<li>Courses</li>
-			<li>Dashboard</li>
-			<li>Contact</li>
-			<li>Profile</li>
+			<li><a href="../">Home</a></li>
+			<li><a href="../course">Courses</a></li>
+			<li><a href="../dashboard">Dashboard</a></li>
+			<li><a href="../contact">Contact</a></li>
+			<li><a href="../profile">Profile</a></li>
 		</ul>
 	  </footer>
 		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>

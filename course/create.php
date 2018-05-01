@@ -1,3 +1,8 @@
+<?php
+	session_start();
+	include("../config.php");
+	include("../lib.php");
+?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -12,14 +17,24 @@
     <link rel="icon" href="../images/favicon.ico">
 
 	<?php
-		include("../config.php");
-		include("../lib.php");
-		session_start();
         $userID=$_SESSION["currentUserID"];
 		
 		if(!has_capability("course:create",$userID))
 		{
 			echo "<script>window.location.href = 'index.php?permission=0'</script>";
+		}
+		
+		if (isset($_POST["submit"]))
+		{
+			$title=$_POST["courseName"];
+			$description=$_POST["description"];
+			$visibility=$_POST["visibility"];
+
+			$dbQuery=$db->prepare("insert into courses values (null,:title,:description,:visibility)");
+			$dbParams=array('title'=>$title, 'description'=>$description, 'visibility'=>$visibility);
+			$dbQuery->execute($dbParams);
+
+			redirect("index.php?course=created");
 		}
 		
 		$dbQuery=$db->prepare("select * from users where id=:id");
@@ -40,19 +55,8 @@
 	<!--DK CSS-->
 	<link href="../styles.css" rel="stylesheet">
 	
-	<script>
-	function disableField()
-	{
-		cb = document.getElementById('useCourseDates').checked;
-		
-		document.getElementById('dayStart').disabled = !cb;
-		document.getElementById('monthStart').disabled = !cb;
-		document.getElementById('yearStart').disabled = !cb;
-		document.getElementById('dayEnd').disabled = !cb;
-		document.getElementById('monthEnd').disabled = !cb;
-		document.getElementById('yearEnd').disabled = !cb;
-	}
-	</script>
+	<!--CKEDITOR JS-->
+	<script src="https://cdn.ckeditor.com/4.8.0/standard/ckeditor.js"></script>
 	
 	</head>
 
@@ -100,10 +104,11 @@
 
       <div class="container">
 	  
+	  <br>
 	  <h1>Create course</h1>
 	
 		<br>
-		<form method="post" action="createcourse-query.php">
+		<form method="post" action="create.php">
 		<form>
 			<div class="form-row">
 				<div class="form-group col-md-12">
@@ -117,27 +122,26 @@
 				<div class="form-group col-md-12">
 					<label for="description">Course description</label>
 					<textarea class="form-control" id="description" name="description" rows="5"></textarea>
+					
+					<script>
+						CKEDITOR.replace( 'description' );
+					</script>
 				</div>
 			</div>
 			
 			<div class="form-row">
-				<div class="form-group col-md-6">
-					<label for="topicCount">Topics</label>
-					<input type="number" class="form-control" aria-describedby="topicCountHelp" id="topicCount" name="topicCount">
-					<small id="topicCountHelp" class="form-text text-muted">Number of topics on this course</small>
-				</div>
-				
-				<div class="form-group col-md-6">
-					<label for="active">Active</label>
-					<select id="active" name="active" aria-describedby="activeHelp" class="form-control">
-						<option value="y" selected>Yes</option>
-						<option value="n">No</option>
+				<div class="form-group col-md-12">
+					<label for="visibility">Course visibility</label>
+					<select id="visibility" name="visibility" aria-describedby="visibilityHelp" class="form-control">
+						<option value="1" selected>Open</option>
+						<option value="2">Restricted</option>
+						<option value="0">Closed</option>
 					</select>
-					<small id="activeHelp" class="form-text text-muted">Is this course active?</small>
+					<small id="visibilityHelp" class="form-text text-muted">Course visibility - Open: open to all users to enrol | Closed: only visible to teachers/admins | Restricted: only visible to enrolled users</small>
 				</div>
 			</div>
 			
-			<input class="btn btn-primary" type="submit" />
+			<input class="btn btn-primary" name="submit" type="submit" />
 		</form>
 	  </div>
 	  
@@ -145,11 +149,11 @@
 	  <footer>
 		<p class="copyright"><?php echo $sitename ." | &copy ". date("Y"); ?></p>
 		<ul class="v-links">
-			<li>Home</li>
-			<li>Courses</li>
-			<li>Dashboard</li>
-			<li>Contact</li>
-			<li>Profile</li>
+			<li><a href="../">Home</a></li>
+			<li><a href="../course">Courses</a></li>
+			<li><a href="../dashboard">Dashboard</a></li>
+			<li><a href="../contact">Contact</a></li>
+			<li><a href="../profile">Profile</a></li>
 		</ul>
 	  </footer>
 		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>

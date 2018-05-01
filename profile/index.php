@@ -17,13 +17,11 @@
     <link rel="icon" href="../images/favicon.ico">
 
 	<?php
-		session_start();
         $userID=$_SESSION["currentUserID"];
 		
 		if (!isset($_SESSION["currentUserID"]))
         {
-			//header("Location: login.php");
-            echo "<script>window.location.href = '../login/'</script>";
+            redirect("../login/");
         }
 		
 		$dbQuery=$db->prepare("select * from users where id=:id");
@@ -44,7 +42,7 @@
 			$timestamp=$dbRow["lastlogin"];
         }
 		
-		$lastlogin = gmdate("Y-m-d H:i:s", $timestamp);
+		$lastlogin = date("Y-m-d H:i:s", $timestamp);
 	?>
 	
     <title><?php echo $username;?> | Profile</title>
@@ -116,9 +114,6 @@
 			  <li class="nav-item">
 				<a class="nav-link" href="edit.php">Edit</a>
 			  </li>
-			  <li class="nav-item">
-				<a class="nav-link" href="preferences.php">Preferences</a>
-			  </li>
 			</ul>
 			
 			<br>
@@ -162,11 +157,11 @@
       <footer>
 		<p class="copyright"><?php echo $sitename ." | &copy ". date("Y"); ?></p>
 		<ul class="v-links">
-			<li>Home</li>
-			<li>Courses</li>
-			<li>Dashboard</li>
-			<li>Contact</li>
-			<li>Profile</li>
+			<li><a href="../">Home</a></li>
+			<li><a href="../course">Courses</a></li>
+			<li><a href="../dashboard">Dashboard</a></li>
+			<li><a href="../contact">Contact</a></li>
+			<li><a href="../profile">Profile</a></li>
 		</ul>
 	  </footer>
 		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>

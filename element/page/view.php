@@ -42,7 +42,7 @@
 				$content=$dbRow["content"];
 				$visibility=$dbRow["visible"];
 				
-				if ($visibility == 0)
+				if ($visibility == 0 && !has_capability("site:config",$userID))
 				{
 					echo "<script>window.location.href = '../../course/index.php?course=hidden'</script>";
 				}
@@ -120,7 +120,10 @@
 		<?php
 
 			echo $content;
-
+			
+			echo '<br>';
+			if(has_capability("course:admin",$userID)) { echo '<a style="float:right;" href="../../function/editElement.php?id='.$id.'&element=page">Edit page</a>'; }
+			echo '<br>';
 		?>
 		
 	  </div>

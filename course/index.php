@@ -1,3 +1,8 @@
+<?php
+	session_start();
+	include("../config.php");
+	include("../lib.php");
+?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -5,6 +10,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
+	<script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js" integrity="sha384-SlE991lGASHoBfWbelyBPLsUlwY1GwNDJo3jSJO04KZ33K2bwfV9YBauFfnzvynJ" crossorigin="anonymous"></script>
 
 	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <meta name="description" content="">
@@ -12,9 +18,6 @@
     <link rel="icon" href="../images/favicon.ico">
 
 	<?php
-		include("../config.php");
-		include("../lib.php");
-		session_start();
         $userID=$_SESSION["currentUserID"];
 		
 		$dbQuery=$db->prepare("select * from users where id=:id");
@@ -130,56 +133,96 @@
 					</div>';
             }
             ?>
-            <h1>All courses</h1>
+            <h1>Course catalogue</h1>
             <?php if(has_capability("course:create",$userID)) { echo '<button type="button" class="btn btn-primary btn-sm" style="float:right" onclick="window.location.href=\'create.php\'">Create a course</button>'; } ?>
-            <br><br>
-
-                <!-- Default panel contents --
-                <!-- Table -->
+			
+			<div class="search">
+				<form method="get" action="index.php">
+						<div class="form-row">
+							<div class="form-group col-md-10">
+								<input class="form-control form-control-lg" type="text" name="search" placeholder="Search for courses">
+							</div>
+							
+							<div class="form-group col-md-2">
+								<button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-search"></i></button>
+								<button onclick="window.location.href='../course'" class="btn btn-primary btn-lg"><i class="fas fa-times"></i></button>
+							</div>
+						</div>
+				</form>
+			</div>
+			
                 <table class="table">
-
+	
                     <tr><th style="text-align:left;width:150px">Course</th><th style="text-align:left;max-width:500px">Description</th></tr>
                     <?php
-
-                    $dbQuery=$db->prepare("select * from courses");
-                    //$dbParams=array('id'=>$id);
-                    $dbQuery->execute();
-
+					
+					if (isset($_GET["search"]))
+					{
+						$search = $_GET["search"];
+						
+						$dbQuery=$db->prepare("select * from courses where `title` like :search");
+						$dbParams=array('search'=>"%".$search."%");
+						$dbQuery->execute($dbParams);
+						$searchResults = $dbQuery->rowCount();
+					}
+					else
+					{
+						$dbQuery=$db->prepare("select * from courses");
+						//$dbParams=array('id'=>$id);
+						$dbQuery->execute();
+					}
+                   
                     while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC))
                     {
-                        $courseId=$dbRow["id"];
+                        $courseID=$dbRow["id"];
                         $title=$dbRow["title"];
                         $description=$dbRow["description"];
-                        //$theIcon=$dbRow["icon"];
-                        $start=$dbRow["start"];
-                        $end=$dbRow["end"];
-                        $active=$dbRow["active"];
+                        $visibility=$dbRow["visibility"];
 
-						if ($active == "y" || has_capability("course:admin",$userID))
+						if (has_capability("course:admin",$userID))
 						{
-							if ($active == "n")
+							if ($visibility == "0")
 							{
-								echo "<tr> <td><a class='dimmed' href='view.php?id=$courseId'>$title</a></td> <td>$description</td></tr>";
+								echo "<tr> <td><a class='dimmed' href='view.php?id=".$courseID."'>".$title."</a></td> <td>".$description."</td></tr>";
 							}
 							else {
-								echo "<tr> <td><a class='a' href='view.php?id=$courseId'>$title</a></td> <td>$description</td></tr>";
+								echo "<tr> <td><a class='a' href='view.php?id=".$courseID."'>".$title."</a></td> <td>".$description."</td></tr>";
+							}
+						}
+						else if ($visibility == "1")
+						{
+							echo "<tr> <td><a class='a' href='view.php?id=".$courseID."'>".$title."</a></td> <td>".$description."</td></tr>";	
+						}
+						else if ($visibility == "2")
+						{
+							// Check if user is enrolled on the restricted course
+							if (isEnrolled($courseID, $userID))
+							{
+								echo "<tr> <td><a class='a' href='view.php?id=".$courseID."'>".$title."</a></td> <td>".$description."</td></tr>";
 							}
 						}
                     }
+					
+					echo "</table>";
+					
+					if ($searchResults == 0 && isset($_GET["search"]))
+					{
+						echo "<p class='search-results'>No courses found</p>";
+					}
                     ?>
 
-                </table>
+                
 
         </div>
 		
 		<footer>
 		<p class="copyright"><?php echo $sitename ." | &copy ". date("Y"); ?></p>
 		<ul class="v-links">
-			<li>Home</li>
-			<li>Courses</li>
-			<li>Dashboard</li>
-			<li>Contact</li>
-			<li>Profile</li>
+			<li><a href="../">Home</a></li>
+			<li><a href="../course">Courses</a></li>
+			<li><a href="../dashboard">Dashboard</a></li>
+			<li><a href="../contact">Contact</a></li>
+			<li><a href="../profile">Profile</a></li>
 		</ul>
 	  </footer>
 		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>

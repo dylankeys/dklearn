@@ -1,3 +1,39 @@
+<?php
+	session_start();
+	include("../../config.php");
+	include("../../lib.php");
+	
+	if (isset($_POST["submit"]))
+	{
+		$title = $_POST["pageName"];
+		$content = $_POST["pageContent"];
+		$visiblity = $_POST["visiblity"];
+		
+		if (isset($_POST["topicid"]))
+		{
+			$topicid = $_POST["topicid"];
+			$courseid = $_POST["courseid"];
+			$redirect = "../../course/view.php?id=".$courseid;
+		}
+		else {
+			$courseid = null;
+			$redirect = "index.php?success=created";
+		}
+			
+		$dbQuery=$db->prepare("insert into site_pages values (null,:title,:content,:courseid,:visiblity)");
+		$dbParams=array('title'=>$title, 'content'=>$content, 'visiblity'=>$visiblity, 'courseid'=>$courseid);
+		$dbQuery->execute($dbParams);
+		
+		if (isset($_POST["topicid"]))
+		{			
+			addElement($courseid, $topicid, "page");
+		}
+		
+		redirect($redirect);
+	}
+	else
+	{
+?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -12,14 +48,31 @@
     <link rel="icon" href="../../images/favicon.ico">
 
 	<?php
-		include("../../config.php");
-		include("../../lib.php");
-		session_start();
         $userID=$_SESSION["currentUserID"];
 		
-		if(!has_capability("site:config",$userID))
+		if (isset($_GET["topicid"]) && isset($_GET["courseid"]))
 		{
-			echo "<script>window.location.href = '../../index.php?permission=0'</script>";
+			if($_GET["topicid"]==null || $_GET["courseid"]==null)
+            {
+                echo "<script>window.location.href = 'index.php?course=noid'</script>";
+            }
+			$topicid = $_GET["topicid"];
+			$courseid = $_GET["courseid"];
+			$addToCourse = true;
+		}
+		else {
+			$addToCourse = false;
+		}
+		
+		$dbQueryEnrolments = $db->prepare("select * from enrolments where userID=:userID AND courseID=:courseID");
+		$dbParamsEnrolments = array('userID' => $userID, 'courseID' => $courseid);
+		$dbQueryEnrolments->execute($dbParamsEnrolments);
+		$dbRowEnrolments=$dbQueryEnrolments->fetch(PDO::FETCH_ASSOC);
+		$role = $dbRowEnrolments["role"];
+		
+		if(!has_capability("course:admin",$userID) && $role != "teacher")
+		{
+			error("You do not have permission to access this page", "../../");
 		}
 		
 		$dbQuery=$db->prepare("select * from users where id=:id");
@@ -33,19 +86,6 @@
 		   $fullname=$dbRow["fullname"];
 		   $profileimage=$dbRow["profileimage"];
         }
-		
-		if (isset($_POST["submit"]))
-		{
-			$title = $_POST["pageName"];
-			$content = $_POST["pageContent"];
-			$visiblity = $_POST["visiblity"];
-			
-			$dbQuery=$db->prepare("insert into site_pages values (null,:title,:content,:visiblity)");
-			$dbParams=array('title'=>$title, 'content'=>$content, 'visiblity'=>$visiblity);
-			$dbQuery->execute($dbParams);
-			
-			echo "<script>window.location.href = 'index.php?success=created'</script>";
-		}
 	?>
 	
     <title><?php echo $sitename;?> | Create a page</title>
@@ -135,6 +175,14 @@
 				</div>
 			</div>
 			
+			<?php
+				if ($addToCourse)
+				{
+					echo '<input type="hidden" name="topicid" value="'.$topicid.'" />';
+					echo '<input type="hidden" name="courseid" value="'.$courseid.'" />';
+				}
+			?>
+			
 			<input class="btn btn-primary" value="Create page" name="submit" type="submit" />
 		</form>
 	  </div>
@@ -143,11 +191,11 @@
 	  <footer>
 		<p class="copyright"><?php echo $sitename ." | &copy ". date("Y"); ?></p>
 		<ul class="v-links">
-			<li>Home</li>
-			<li>Courses</li>
-			<li>Dashboard</li>
-			<li>Contact</li>
-			<li>Profile</li>
+			<li><a href="../../">Home</a></li>
+			<li><a href="../../course">Courses</a></li>
+			<li><a href="../../dashboard">Dashboard</a></li>
+			<li><a href="../../contact">Contact</a></li>
+			<li><a href="../../profile">Profile</a></li>
 		</ul>
 	  </footer>
 		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
@@ -155,3 +203,6 @@
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous"></script>
 	</body>
 </html>
+<?php
+	}
+?>

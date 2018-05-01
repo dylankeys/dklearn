@@ -2,11 +2,6 @@
     session_start();
     include ("../config.php");
 	include("../lib.php");
-	
-	if(!has_capability("site:config",$userID))
-	{
-		echo "<script>window.location.href = '../../index.php?permission=0'</script>";
-	}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -22,12 +17,19 @@
     <link rel="icon" href="../images/favicon.ico">
 
 	<?php
-		session_start();
         $userID=$_SESSION["currentUserID"];
+		
+		if(isset($_GET["error"]))
+		{
+			if ($_GET["error"] == "currentpwnomatch")
+			{
+				$currentPwError = "Current password does not match.";
+			}
+		}
 		
 		if (!isset($_SESSION["currentUserID"]))
         {
-            echo "<script>window.location.href = '../login/'</script>";
+            redirect("../login/");
         }
 		
 		if(isset($_POST["submit"]))
@@ -58,6 +60,33 @@
 			
 			echo "<script>window.location.href = 'edit.php?success=1'</script>";
 		}
+		else if(isset($_POST["updatepassword"]))
+		{
+			$current = $_POST["current"];
+			$password = $_POST["password"];
+			$userid = $_POST["userid"];
+			
+			$current = md5($current);
+			
+			$dbQuery=$db->prepare("select * from users where password=:current");
+			$dbParams=array('current'=>$current);
+			$dbQuery->execute($dbParams);
+			$currentPwMatch = $dbQuery->rowCount();
+			
+			if ($currentPwMatch < 1)
+			{
+				redirect("edit.php?action=changepassword&error=currentpwnomatch");
+			}
+			else
+			{
+				$password = md5($password);
+				
+				$dbQuery=$db->prepare("update users set password=:password where id=:userid");
+				$dbParams=array('userid'=>$userid,'password'=>$password);
+				$dbQuery->execute($dbParams);
+				redirect("edit.php?success=2");
+			}
+		}
 		
 		$dbQuery=$db->prepare("select * from users where id=:id");
         $dbParams = array('id'=>$userID);
@@ -84,6 +113,20 @@
 	
 	<!--DK CSS-->
 	<link href="../styles.css" rel="stylesheet">
+	
+	
+	<script>
+		function validateForm() {
+			var pwNew = document.forms["pwChange"]["current"].value;
+			var pw = document.forms["pwChange"]["password"].value;
+			var pwConfirm = document.forms["pwChange"]["passwordConfirm"].value;
+			
+			if (pw != pwConfirm) {
+				alert("Passwords must match!");
+				return false;
+			}
+		}
+	</script>
 	
 	</head>
 
@@ -144,6 +187,15 @@
 							</button>
 						</div>';
 				}
+				else if(isset($_GET["success"]) && $_GET["success"] == 2)
+				{				
+					echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
+							<strong>Success!</strong> Password updated!
+							<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+							</button>
+						</div>';
+				}
 
 				echo "<h5 style='float:left; vertical-align:middle;'>Logged in as ". $username ."</h5>";
 			?>
@@ -159,12 +211,43 @@
 			  <li class="nav-item">
 				<a class="nav-link active" href="edit.php">Edit</a>
 			  </li>
-			  <li class="nav-item">
-				<a class="nav-link" href="preferences.php">Preferences</a>
-			  </li>
 			</ul>
 
 			<br>
+			
+			<?php
+				if (isset($_GET["action"]) && $_GET["action"] == "changepassword")
+				{
+			?>
+					<h3>Change Password</h3>
+					<form method="post" name="pwChange" onsubmit="return validateForm()" action="edit.php">
+						<div class="form-group">
+							<label for="current">Current password<span class="required">&nbsp;&nbsp;&nbsp;<?php echo $currentPwError ?></span></label>
+							<input class="form-control" id="current" name="current" type="password" aria-describedby="currentHelp" placeholder="Current password" required>
+							<small id="currentHelp" class="form-text text-muted"><span class="required">* Required&nbsp;&nbsp;&nbsp;</span>Enter your current account password.</small>
+						</div>
+						
+						<div class="form-group">
+							<label for="password">New Password<span class="required"></span></label>
+							<input class="form-control" id="password" name="password" type="password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{7,50}" aria-describedby="passwordHelp" placeholder="New password">
+							<small id="usernameHelp" class="form-text text-muted"><span class="required">* Required&nbsp;&nbsp;&nbsp;</span>Please enter a new password. Must be between 7-50 characters, with at least one character lowercase, uppercase and number.</small>
+						</div>
+						
+						<div class="form-group">
+							<label for="passwordConfirm">Username<span class="required"></span></label>
+							<input class="form-control" id="passwordConfirm" name="passwordConfirm" type="password" aria-describedby="passwordConfirmHelp" placeholder="Confirm password" required>
+							<small id="passwordConfirmHelp" class="form-text text-muted"><span class="required">* Required&nbsp;&nbsp;&nbsp;</span>Must match the new password, as entered above.</small>
+						</div>
+						
+						<input type="hidden" name="userid" value="<?php echo $userID; ?>">
+						<button type="submit" name="updatepassword" class="btn btn-primary">Update password</button>
+					</form>
+			
+			<?php		
+				}
+				else
+				{
+			?>
 			<h3>Edit Profile</h3>
 			<form method="post" action="edit.php">
 				<div class="form-group">
@@ -453,10 +536,14 @@
 					<small id="gravitarEmailHelp" class="form-text text-muted">If you do not have a Gravitar, you can create one <a href="https://en.gravatar.com/">here.</a></small>
 				</div>
 				
-				<p>Change your password <a href="changepassword.php">here</a></p>
+				<p>Change your password <a href="edit.php?action=changepassword">here</a></p>
 				
 				<button type="submit" name="submit" class="btn btn-primary">Update Profile</button>
 			</form>
+			
+			<?php
+				}
+			?>
 			<br>
 
         </div>
@@ -464,11 +551,11 @@
       <footer>
 		<p class="copyright"><?php echo $sitename ." | &copy ". date("Y"); ?></p>
 		<ul class="v-links">
-			<li>Home</li>
-			<li>Courses</li>
-			<li>Dashboard</li>
-			<li>Contact</li>
-			<li>Profile</li>
+			<li><a href="../">Home</a></li>
+			<li><a href="../course">Courses</a></li>
+			<li><a href="../dashboard">Dashboard</a></li>
+			<li><a href="../contact">Contact</a></li>
+			<li><a href="../profile">Profile</a></li>
 		</ul>
 	  </footer>
 		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>

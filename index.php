@@ -1,3 +1,8 @@
+<?php
+	session_start();
+	include("config.php");
+	include("lib.php");
+?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -5,6 +10,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
+	<script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js" integrity="sha384-SlE991lGASHoBfWbelyBPLsUlwY1GwNDJo3jSJO04KZ33K2bwfV9YBauFfnzvynJ" crossorigin="anonymous"></script>
 
 	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <meta name="description" content="">
@@ -12,9 +18,6 @@
     <link rel="icon" href="images/favicon.ico">
 
 	<?php
-		include("config.php");
-		include("lib.php");
-		session_start();
         $userID=$_SESSION["currentUserID"];
 		
 		$dbQuery=$db->prepare("select * from users where id=:id");
@@ -126,26 +129,9 @@
 						</div>';
 				}
 			?>
-		  <!--
-		  
-			<div class="carousel-item active">
-			  <img class="d-block w-100" src="" alt="Slide 1">
-			  <div class="carousel-caption d-none d-md-block">
-				<h5>Slide 1</h5>
-				<p>Lorem ipsum</p>
-			  </div>
-			</div>
-			
-			<div class="carousel-item">
-			  <img class="d-block w-100" src="" alt="Slide 3">
-			  <div class="carousel-caption d-none d-md-block">
-				<h5>Slide 3</h5>
-				<p>Lorem ipsum</p>
-			  </div>
-			</div>
-		  
-		  -->
+
 		  </div>
+
 		  <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
 			<span class="carousel-control-prev-icon" aria-hidden="true"></span>
 			<span class="sr-only">Previous</span>
@@ -157,17 +143,148 @@
 		</div>
 		
 		<div class="container">
-			
+
+			<div class="search">
+				<form method="get" action="courses/index.php">
+						<div class="form-row">
+							<div class="form-group col-md-10">
+								<input class="form-control form-control-lg" type="text" name="search" placeholder="Search for courses">
+							</div>
+							
+							<div class="form-group col-md-2">
+								<button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-search"></i></button>
+							</div>
+						</div>
+				</form>
+			</div>
+
+			<div class="row">
+				<div class="col-sm-4">
+					<div class="card h-100">
+						<div class="card-body">
+							<h5 class="card-title"><i class="fas fa-graduation-cap"></i>&nbsp;&nbsp;Course library</h5>
+							<p class="card-text">View the full list of courses. Note, an account is required to access courses.</p>
+							<a href="course/" class="btn btn-primary">View</a>
+						</div>
+					</div>
+				</div>
+				<div class="col-sm-4">
+					<div class="card h-100">
+						<div class="card-body">
+							<h5 class="card-title"><i class="fas fa-graduation-cap"></i>&nbsp;&nbsp;Contact the team</h5>
+							<p class="card-text">Click below to access the contact information for our team.</p>
+							<a href="contact/" class="btn btn-primary">View</a>
+						</div>
+					</div>
+				</div>
+				<div class="col-sm-4">
+					<div class="card h-100">
+						<div class="card-body">
+							<?php
+								if (isset($_SESSION["currentUserID"]))
+								{
+							?>
+
+							<h5 class="card-title"><i class="fas fa-user"></i>&nbsp;&nbsp;Profile</h5>
+							<p class="card-text">Click below to view and manage your personal profile.</p>
+							<a href="profile/" class="btn btn-primary">View</a>
+
+							<?php
+								}
+								else {
+							?>
+
+							<h5 class="card-title"><i class="fas fa-user"></i>&nbsp;&nbsp;Register / Log in</h5>
+							<p class="card-text">Click below to sign in or register.</p>
+							<a href="login/" class="btn btn-primary">View</a>
+
+							<?php
+								}
+							?>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="site-news">
+				<h1>Site news</h1>
+
+				<div class="row">
+					<div class="col-4">
+						<div class="list-group" id="list-tab" role="tablist">
+							<?php
+
+								$dbQuery=$db->prepare("select * from site_news where `visible`='1' order by `id` asc");
+								$dbQuery->execute();
+
+								$active = " active";
+
+								while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC)) {
+									$postid = $dbRow["id"];
+									$heading = $dbRow["heading"];
+									$fullcontent = $dbRow["content"];
+									$postedtime = $dbRow["postedtime"];
+									$postedby = $dbRow["postedby"];
+									$visible = $dbRow["visible"];
+
+									$summary = substr($fullcontent,0,95);
+
+									$summary = $summary . "...";
+
+									if ($visible == "1")
+									{
+										echo '<a class="list-group-item list-group-item-action flex-column align-items-start'.$active.'" id="list-'.$postid.'-list" data-toggle="list" href="#list-'.$postid.'" role="tab" aria-controls="'.$postid.'">
+														<div class="d-flex w-100 justify-content-between">
+															<h5 class="mb-1">'.$heading.'</h5>
+															<small>'.$postedtime.'</small>
+														</div>
+														<p class="mb-1">'.$summary.'</p>
+														<small>Posted by '.$postedby.'</small>
+													</a>';
+
+										$active = "";
+									}
+								}
+
+							?>
+						</div>
+					</div>
+					<div class="col-8">
+						<div class="tab-content" id="nav-tabContent">
+							<?php
+								$dbQuery=$db->prepare("select * from site_news where `visible`='1' order by `id` asc");
+								$dbQuery->execute();
+
+								$activeContent = " active";
+
+								while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC)) {
+									$contentid = $dbRow["id"];
+									$content = $dbRow["content"];
+									$contentvis = $dbRow["visible"];
+
+									if ($contentvis == "1")
+									{
+										echo '<div class="tab-pane fade show'.$activeContent.'" id="list-'.$contentid.'" role="tabpanel" aria-labelledby="list-'.$contentid.'-list">'.$content.'</div>';
+
+										$activeContent = "";
+									}
+								}
+							?>
+						</div>
+					</div>
+				</div>
+			</div>
+
 		</div>
 	  
 	  <footer>
 		<p class="copyright"><?php echo $sitename ." | &copy ". date("Y"); ?></p>
 		<ul class="v-links">
-			<li>Home</li>
-			<li>Courses</li>
-			<li>Dashboard</li>
-			<li>Contact</li>
-			<li>Profile</li>
+			<li><a href="index.php">Home</a></li>
+			<li><a href="course/">Courses</a></li>
+			<li><a href="dashboard/">Dashboard</a></li>
+			<li><a href="contact/">Contact</a></li>
+			<li><a href="profile/">Profile</a></li>
 		</ul>
 	  </footer>
 		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>

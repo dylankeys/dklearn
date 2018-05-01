@@ -1,3 +1,8 @@
+<?php
+	session_start();
+	include("../../config.php");
+	include("../../lib.php");
+?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -12,9 +17,6 @@
     <link rel="icon" href="../../images/favicon.ico">
 
 	<?php
-		include("../../config.php");
-		include("../../lib.php");
-		session_start();
         $userID=$_SESSION["currentUserID"];
 		
 		if(!has_capability("site:config",$userID))
@@ -85,7 +87,7 @@
 			
 			  <?php
 				if (isset($username)) {
-					echo "<img src='".$profileimage."' width='28px' alt='Profile Image' class='rounded-circle'>&nbsp;<a href='../profile/'>".$fullname." (<a href='../profile/killSession.php'>Log out</a>)</a>";
+					echo "<img src='".$profileimage."' width='28px' alt='Profile Image' class='rounded-circle'>&nbsp;<a href='../profile/'>".$fullname." (<a href='../../profile/killSession.php'>Log out</a>)</a>";
 				}
 				else {
 					echo "<a href='../../login/'>Log in or sign up</a>";
@@ -118,10 +120,30 @@
 						</button>
 					</div>';
 				}
+				else if ($_GET["success"] == "created")
+				{
+					echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
+						<strong>Success!</strong> User created.
+						<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+						</button>
+					</div>';
+				}
+			}
+			else if(isset($_GET["error"]))
+			{
+				if ($_GET["error"] == "passwordmatch")
+				{
+					echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+						<strong>Error!</strong> Edited passwords do not match.
+						<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+						</button>
+					</div>';
+				}
 			}
 		 ?>
          <h1>User management</h1>
-		 <br>
 		
          <?php
 
@@ -490,52 +512,71 @@
 				$username = $_POST["username"];
 				$fullname = $_POST["fullname"];
 				$email = $_POST["email"];
+				$changePassword = $_POST["changePassword"];
 				$bio = $_POST["bio"];
 				$dob = $_POST["dob"];
 				$country = $_POST["country"];
 				$gravitarEmail = $_POST["gravitarEmail"];
 				
-				if($usePassword == "yes")
+				if($changePassword == "yes")
 				{
 					$password = $_POST["password"];
 					$passwordConfirm = $_POST["passwordConfirm"];
 				}
-			
-				if ($gravitarEmail != "")
+					
+				if (isset($password) && $gravitarEmail != "")
+				{
+					if ($password != $passwordConfirm)
+					{
+						redirect("index.php?error=passwordmatch");
+					}
+					$password = md5($password);
+					
+					$gravitarhash = md5( strtolower( trim( $gravitarEmail ) ) );
+					
+					$profileimage = "https://www.gravatar.com/avatar/" . $gravitarhash . "?s=400";
+					
+					$dbQuery=$db->prepare("update users set username=:username, fullname=:fullname, password=:password, email=:email, bio=:bio, country=:country, dob=:dob, profileimage=:profileimage where id=:id");
+					$dbParams=array('id'=>$editid,'username'=>$username,'fullname'=>$fullname,'email'=>$email,'bio'=>$bio,'country'=>$country,'dob'=>$dob,'profileimage'=>$profileimage,'password'=>$password);
+					$dbQuery->execute($dbParams);
+				}
+				else if (isset($password))
+				{
+					if ($password != $passwordConfirm)
+					{
+						redirect("index.php?error=passwordmatch");
+					}
+					$password = md5($password);
+					
+					$dbQuery=$db->prepare("update users set username=:username, fullname=:fullname, password=:password, email=:email, bio=:bio, country=:country, dob=:dob where id=:id");
+					$dbParams=array('id'=>$editid,'username'=>$username,'fullname'=>$fullname,'email'=>$email,'bio'=>$bio,'country'=>$country,'dob'=>$dob,'password'=>$password);
+					$dbQuery->execute($dbParams);
+				}
+				else if ($gravitarEmail != "")
 				{
 					$gravitarhash = md5( strtolower( trim( $gravitarEmail ) ) );
 					
 					$profileimage = "https://www.gravatar.com/avatar/" . $gravitarhash . "?s=400";
 										
-					$dbQuery=$db->prepare("update users set fullname=:fullname, email=:email, bio=:bio, country=:country, dob=:dob, profileimage=:profileimage where id=:id");
-					$dbParams=array('id'=>$editid,'fullname'=>$fullname,'email'=>$email,'bio'=>$bio,'country'=>$country,'dob'=>$dob,'profileimage'=>$profileimage);
-					$dbQuery->execute($dbParams);
-				}
-				else if (isset($password))
-				{
-					$dbQuery=$db->prepare("update users set fullname=:fullname, password=:password, email=:email, bio=:bio, country=:country, dob=:dob where id=:id");
-					$dbParams=array('id'=>$editid,'fullname'=>$fullname,'email'=>$email,'bio'=>$bio,'country'=>$country,'dob'=>$dob,'password'=>$password);
-					$dbQuery->execute($dbParams);
-				}
-				else if (isset($password) && $gravitarEmail != "")
-				{
-					$dbQuery=$db->prepare("update users set fullname=:fullname, password=:password, email=:email, bio=:bio, country=:country, dob=:dob, profileimage=:profileimage where id=:id");
-					$dbParams=array('id'=>$editid,'fullname'=>$fullname,'email'=>$email,'bio'=>$bio,'country'=>$country,'dob'=>$dob,'profileimage'=>$profileimage,'password'=>$password);
+					$dbQuery=$db->prepare("update users set username=:username, fullname=:fullname, email=:email, bio=:bio, country=:country, dob=:dob, profileimage=:profileimage where id=:id");
+					$dbParams=array('id'=>$editid,'username'=>$username,'fullname'=>$fullname,'email'=>$email,'bio'=>$bio,'country'=>$country,'dob'=>$dob,'profileimage'=>$profileimage);
 					$dbQuery->execute($dbParams);
 				}
 				else
 				{
-					$dbQuery=$db->prepare("update users set fullname=:fullname, email=:email, bio=:bio, country=:country, dob=:dob where id=:id");
-					$dbParams=array('id'=>$editid,'fullname'=>$fullname,'email'=>$email,'bio'=>$bio,'country'=>$country,'dob'=>$dob);
+					$dbQuery=$db->prepare("update users set username=:username, fullname=:fullname, email=:email, bio=:bio, country=:country, dob=:dob where id=:id");
+					$dbParams=array('id'=>$editid,'username'=>$username,'fullname'=>$fullname,'email'=>$email,'bio'=>$bio,'country'=>$country,'dob'=>$dob);
 					$dbQuery->execute($dbParams);
 				}
-
-				echo "<script>window.location.href = 'index.php?success=edited'</script>";
+				
+				redirect("index.php?success=edited");
 			}
 			else 
 			{
 		?>
-		
+		<div class="course-btn">
+			<button type="button" class="btn btn-primary btn-sm" style="float:right" onclick="window.location.href='add/'">Add a user</button><br><br>
+		</div>
 		<table class="table table-hover">
 			<thead>
 				<tr>
@@ -560,9 +601,9 @@
 					$email=$dbRow["email"];
 					$country=$dbRow["country"];
 					$timestamp=$dbRow["lastlogin"];
-					$lastlogin = gmdate("Y-m-d H:i:s", $timestamp);
+					$lastlogin = date("Y-m-d H:i:s", $timestamp);
 					
-					if ($lastlogin == "1970-01-01 00:00:00")
+					if ($lastlogin == "1970-01-01 00:00:00" || $lastlogin == "1970-01-01 01:00:00")
 					{
 						$lastlogin = "Never logged in";
 					}
@@ -589,11 +630,11 @@
 	  <footer>
 		<p class="copyright"><?php echo $sitename ." | &copy ". date("Y"); ?></p>
 		<ul class="v-links">
-			<li>Home</li>
-			<li>Courses</li>
-			<li>Dashboard</li>
-			<li>Contact</li>
-			<li>Profile</li>
+			<li><a href="../../">Home</a></li>
+			<li><a href="../../course">Courses</a></li>
+			<li><a href="../../dashboard">Dashboard</a></li>
+			<li><a href="../../contact">Contact</a></li>
+			<li><a href="../../profile">Profile</a></li>
 		</ul>
 	  </footer>
 		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>

@@ -9,7 +9,9 @@
     if (isset($_POST["action"]) && $_POST["action"]=="login")
     {
         $formUser=$_POST["username"];
-        $formPass=$_POST["password"];
+        $plainPass=$_POST["password"];
+		
+		$formPass=md5($plainPass);
 
         $dbQuery=$db->prepare("select * from users where username=:formUser");
         $dbParams = array('formUser'=>$formUser);
@@ -29,37 +31,32 @@
 				$dbParams=array('lastlogin'=>$lastlogin, 'userid'=>$_SESSION["currentUserID"]);
 				$dbQuery->execute($dbParams);
 
-                //header("Location: /profile.php");
                 if (isset($_POST["courseid"]))
                 {
-                    echo "<script>window.location.href = '../course/view.php?id=". $_POST["courseid"] ."'</script>";
+					redirect("../course/view.php?id=". $_POST["courseid"]);
                 }
                 else
                 {
-                    echo "<script>window.location.href = '../profile'</script>";
+                    redirect("../profile/");
                 }
 
             }
             else
             {
-                //header("Location: /login.php?failCode=2");
-                echo "<script>window.location.href = '../login/index.php?failCode=2'</script>";
+                redirect("../login/index.php?failCode=2");
             }
         }
         else
         {
-            //header("Location: /login.php?failCode=1");
-            echo "<script>window.location.href = '../login/index.php?failCode=1'</script>";
+			redirect("../login/index.php?failCode=1");
         }
 
     }
     else
     {
-		
 ?>
 <!DOCTYPE html>
 <?php
-		session_start();
         $userID=$_SESSION["currentUserID"];
 		
 		$dbQuery=$db->prepare("select * from users where id=:id");
@@ -80,6 +77,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
+	<script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js" integrity="sha384-SlE991lGASHoBfWbelyBPLsUlwY1GwNDJo3jSJO04KZ33K2bwfV9YBauFfnzvynJ" crossorigin="anonymous"></script>
 
 	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <meta name="description" content="">
@@ -93,7 +91,7 @@
 	
 	</head>
 
-	<body>
+	<body style="background-image: url('../images/loginBG.jpg')">
 
 		<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1E88FF;">
 		<!--<nav class="navbar navbar-expand-lg navbar-light bg-light">-->
@@ -137,16 +135,33 @@
 		</nav>
 
 <div class="container">
+	<div class="login">
 
     <?php
+	
     if (isset($_GET["failCode"])) {
         if ($_GET["failCode"]==1)
-            echo "<h3 style='color:red; text-align: center;'>Bad username entered</h3>";
+            echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+				<strong>Error!</strong> The username you entered does not match one in our records.
+				<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+				</button>
+			</div>';
         if ($_GET["failCode"]==2)
-            echo "<h3 style='color:red; text-align: center;'>Bad password entered</h3>";
+            echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+				<strong>Error!</strong> The password you entered does not match one in our records.
+				<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+				</button>
+			</div>';
         if ($_GET["failCode"]==3)
         {
-            echo "<h3 style='color:red; text-align: center;'>Login or register to enrol on this course</h3>";
+            echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+				<strong>Error!</strong> You must be logged in to enrol on this course, please login or register.
+				<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+				</button>
+			</div>';
 
             if (isset($_GET["courseid"]))
             {
@@ -155,17 +170,7 @@
         }
 
     }
-    ?>
-    <div style="width:50%; margin-left:auto; margin-right:auto;">
-<br>
-<?php
-
-	if (!isset($_GET["registered"]))
-	{
-		echo "<h4>Please log in or register</h4>";
-	}
-
-	if(isset($_GET["registered"]))
+	else if(isset($_GET["registered"]))
 	{
 		echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
 				<strong>Successfully registered!</strong> Log in below to access your account and begin learning.
@@ -176,29 +181,46 @@
 	}
 
 ?>
-   <form name="login" method="post" action="index.php">
-
-	<div id="loginInfo"class="form-group">
-    <input type="text" class="form-control" placeholder="username" name="username">
-  </div>
-
-  <div id="loginInfo"class="form-group">
-    <input type="password" class="form-control" placeholder="password" name="password">
-  </div>
-
-       <?php
-       if (isset($courseid))
-       {
-           echo "<input type='hidden' name='courseid' value='". $courseid ."'>";
-       }
-       ?>
-
-	 <input type="hidden" name="action" value="login">
-     <input style="float:right" type="submit" value="Login" class="btn btn-default" role="button">
-	 </form>
-  <br><br>
-   <a class="a" href="../register/"><h4>Don't have an account? Register here</h4></a>
-   <!--<a class="a" href="../register/organisation/"><h4>or set up an organisation here</h4></a>-->
+	
+		<form name="login" method="post" action="index.php">
+			<div class="card">
+				<div class="card-body">
+					<h5 class="card-title">Please login or register</h5>
+					
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text" id="user-addon"><i class="fas fa-user-circle"></i></span>
+						</div>
+						<input type="text" class="form-control" placeholder="Username" name="username" aria-describedby="user-addon">
+					</div>
+					
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text" id="pw-addon"><i class="fas fa-key"></i></span>
+						</div>
+						<input type="password" class="form-control" placeholder="Password" name="password" aria-describedby="pw-addon">
+					</div>
+					
+					<?php
+						if (isset($courseid))
+						{
+							echo "<input type='hidden' name='courseid' value='". $courseid ."'>";
+						}
+					?>
+					
+					<input type="hidden" name="action" value="login">
+					<input style="float:right" type="submit" value="Login" class="btn btn-primary" role="button">
+					
+					<?php
+						if ($userReg == "1")
+						{
+							echo '<p class="card-text"><a class="a" href="../register/">Don\'t have an account? Register here</a></p>';
+						}
+					?>
+				</div>
+			</div>
+		</form>
+	</div>
 
    </div>
    </div>
@@ -206,11 +228,11 @@
    <footer>
 		<p class="copyright"><?php echo $sitename ." | &copy ". date("Y"); ?></p>
 		<ul class="v-links">
-			<li>Home</li>
-			<li>Courses</li>
-			<li>Dashboard</li>
-			<li>Contact</li>
-			<li>Profile</li>
+			<li><a href="../">Home</a></li>
+			<li><a href="../course">Courses</a></li>
+			<li><a href="../dashboard">Dashboard</a></li>
+			<li><a href="../contact">Contact</a></li>
+			<li><a href="../profile">Profile</a></li>
 		</ul>
 	  </footer>
 	  

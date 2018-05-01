@@ -1,3 +1,8 @@
+<?php
+	session_start();
+	include("../config.php");
+	include("../lib.php");
+?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -12,15 +17,11 @@
     <link rel="icon" href="../images/favicon.ico">
 
 	<?php
-		include("../config.php");
-		include("../lib.php");
-		session_start();
         $userID=$_SESSION["currentUserID"];
 		
 		if (!isset($_SESSION["currentUserID"]))
         {
-			//header("Location: login.php");
-            echo "<script>window.location.href = '../login/'</script>";
+            redirect("../login/");
         }
 		
 		$dbQuery=$db->prepare("select * from users where id=:id");
@@ -91,42 +92,69 @@
 		<br>
 		<h1>Enrolled courses</h1>
 
-              	<!-- Table -->
-              	<table class="table">
+		<!-- Table -->
+		<table class="table">
 
-					<tr><th style="text-align:left;width:150px">Course</th><th style="text-align:left;max-width:500px">Description</th></tr>
-					<?php
+			<tr><th style="text-align:left;width:150px">Course</th><th style="text-align:left;max-width:500px">Description</th><th>Progress</th></tr>
+			<?php
 
-						$dbQuery=$db->prepare("select * from enrolments inner join courses on enrolments.courseid = courses.id where enrolments.userid=:id");
-						$dbParams=array('id'=>$userID);
-						$dbQuery->execute($dbParams);
+				$dbQuery=$db->prepare("select * from enrolments inner join courses on enrolments.courseid = courses.id where enrolments.userid=:id");
+				$dbParams=array('id'=>$userID);
+				$dbQuery->execute($dbParams);
 
-						while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC))
-						{
-							$courseId=$dbRow["courseID"];
-							$title=$dbRow["title"];
-							$description=$dbRow["description"];
-							//$theIcon=$dbRow["icon"];
-							//$start=$dbRow["start"];
-							//$end=$dbRow["end"];
-							//$active=$dbRow["active"];
+				while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC))
+				{
+					$courseId=$dbRow["courseid"];
+					$title=$dbRow["title"];
+					$description=$dbRow["description"];
 
-							echo "<tr> <td><a class='a' href='../course/view.php?id=".$courseId."'>".$title."</a></td> <td>".$description."</td></tr>";
-							//echo "";
-						}
-	 				?>
+					echo "<tr> <td><a class='a' href='../course/view.php?id=".$courseId."'>".$title."</a></td> <td>".$description."</td><td><div class='progress'><div class='progress-bar bg-warning' role='progressbar' style='width: 50%' aria-valuenow='50' aria-valuemin='0' aria-valuemax='100'></div></div></td></tr>";
+					//echo "";
+				}
+			?>
 
-	 			</table>
+		</table>
+		
+		<br>
+		
+
+			<?php
+
+				$dbQuery=$db->prepare("select courses.id, courses.title, courses.description from course_completions inner join courses on course_completions.courseid = courses.id where course_completions.userid=:id");
+				$dbParams=array('id'=>$userID);
+				$dbQuery->execute($dbParams);
+				$rows = $dbQuery->rowCount();
+				
+				if ($rows > 0)
+				{
+					echo '<h1>Completed courses</h1>
+						<table class="table">';
+				
+					echo '<tr><th style="text-align:left;width:150px">Course</th><th style="text-align:left;max-width:500px">Description</th><th>Progress</th></tr>';
+
+					while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC))
+					{
+						$courseId=$dbRow["id"];
+						$title=$dbRow["title"];
+						$description=$dbRow["description"];
+
+						echo "<tr> <td><a class='a' href='../course/view.php?id=".$courseId."'>".$title."</a></td> <td>".$description."</td><td><div class='progress'><div class='progress-bar bg-success' role='progressbar' style='width: 100%' aria-valuenow='100' aria-valuemin='0' aria-valuemax='100'></div></div></td></tr>";
+					}
+					
+					echo '</table><br>
+							<button type="button" class="btn btn-primary btn-lg btn-block" onclick="window.location.href=\'learningrecord/generate.php?userid='.$userID.'\'">View learning record</button><br>';
+				}
+			?>
       </div>
 	  
 	  <footer>
 		<p class="copyright"><?php echo $sitename ." | &copy ". date("Y"); ?></p>
 		<ul class="v-links">
-			<li>Home</li>
-			<li>Courses</li>
-			<li>Dashboard</li>
-			<li>Contact</li>
-			<li>Profile</li>
+			<li><a href="../">Home</a></li>
+			<li><a href="../course">Courses</a></li>
+			<li><a href="../dashboard">Dashboard</a></li>
+			<li><a href="../contact">Contact</a></li>
+			<li><a href="../profile">Profile</a></li>
 		</ul>
 	  </footer>
 		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>

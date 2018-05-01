@@ -15,11 +15,19 @@ footer {
 	background:#8c8b8d;
 	padding:15px;
 	color:#ffffff;
-	bottom:0;
 	width:100%;
 	min-height: 150px;
 	clear: both;
 }
+
+div.container {
+	min-height: calc(100vh - 70px);
+}
+
+.container-jumbo {
+	padding: 20px;
+}
+
 ul.v-links {
 	float:right;
 	list-style-type: none;
@@ -32,7 +40,7 @@ p.copyright {
 	padding-bottom: 10px;
 	padding-left: 10px;
 }
-a.dimmed, a.dimmed:hover {
+li.dimmed > a, li.dimmed > span > a, a.dimmed, a.dimmed:hover {
 	color: #a8abaf;
 }
 
@@ -72,4 +80,123 @@ a.dimmed, a.dimmed:hover {
 	display: inline;
 }
 
+.required {
+	color:red;
+}
 
+td.bold {
+	font-weight: bold;
+}
+
+.course-icons {
+	float: right;
+	text-decoration: none;
+}
+
+.complete {
+	color: #00e600;
+	float: right;
+	font-weight: bold;
+}
+
+.fail {
+	color: red;
+	float: right;
+	font-weight: bold;
+}
+
+.score {
+	font-weight: bold;
+	float: left;
+}
+
+li.no-bullet {
+	list-style-type: none;
+}
+
+.error {
+	color: red;
+	text-align: center;
+}
+
+img.error {
+	height: 350px;
+	width: 350px;
+}
+
+img.centre {
+	display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+p.centre {
+	text-align: center;
+}
+
+.no-results {
+	color:red;
+	text-align:center;
+}
+
+.search {
+	padding: 40px;
+}
+
+.site-news {
+	padding-top: 40px;
+	padding-bottom: 40px;
+}
+
+.login {
+	padding-top: 50px;
+	width:50%;
+	margin-left:auto;
+	margin-right:auto;
+}
+
+.contact {
+	padding-top: 430px;
+}
+
+.copy-confirm {
+	color: green;
+	padding-top: 10px;
+	display: inline;
+}
+
+ul.v-links > li > a {
+	color:#ffffff;
+}
+
+.enrol-btns {
+		padding-top: 100px;
+		padding-bottom: 100px;
+		text-align: center;
+}
+
+@media only screen and (max-width: 667px) {
+	.enrol-btns {
+		padding-top: none;
+		padding-bottom: none;
+		text-align: center;
+	}
+}
+
+.quiz-time {
+	text-align: center;
+	font-weight: bold;
+	padding: 10px;
+	color: red;
+}
+
+.search-results {
+	text-align: center;
+	font-weight: bold;
+	padding: 10px;
+	color: red;
+}
+
+.course-element {
+	list-style-type: none;
+}

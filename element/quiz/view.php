@@ -203,8 +203,6 @@
 				echo "<p class='quiz-time'>Quiz will end at " . $end . "</p>";
 				
 				echo "<form action='grade.php' method='post'>";
-			
-				//$dbQuery=$db->prepare("select * from quiz_questions inner join quiz_answers on quiz_questions.id = quiz_answers.questionid where quiz_questions.quizid=:id");
 				
 				$dbQuery=$db->prepare("select * from quiz_questions where quizid=:id");
 				$dbParams = array('id'=>$id);

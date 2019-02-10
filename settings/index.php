@@ -95,19 +95,17 @@
 		 <div class="jumbotron jumbotron-fluid slideshow-right">
 				<div class="container-jumbo">
 					<h1 class="display-4">Rocket Learn</h1>
-					<p class="lead">Version: 0.05</p>
+					<p class="lead">Version: 1.0</p>
 				</div>
 		</div>
 		 
 		 <div class="list-group slideshow-left">
 			<a href="config/" class="list-group-item list-group-item-action">Application configuration</a>
-			<a href="courses/" class="list-group-item list-group-item-action">Courses</a>
 			<a href="phpinfo/" class="list-group-item list-group-item-action">PHP Info</a>
 			<a href="reports/" class="list-group-item list-group-item-action">Reporting</a>
 			<a href="sitenews/" class="list-group-item list-group-item-action">Site news</a>
 			<a href="sitepages/" class="list-group-item list-group-item-action">Site pages</a>
 			<a href="slideshow/" class="list-group-item list-group-item-action">Slideshow</a>
-			<a href="theme/" class="list-group-item list-group-item-action">Theme</a>
 			<a href="users/" class="list-group-item list-group-item-action">Users</a>
 		</div>
 		

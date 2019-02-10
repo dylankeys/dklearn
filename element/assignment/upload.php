@@ -1,5 +1,6 @@
 <?php
     include ("../../config.php");
+	include ("../../lib.php");
 
     if(isset($_FILES['file'])) 
     {   
@@ -19,7 +20,7 @@
         $file_ext = explode('.', $file_name);
         $file_ext = strtolower(end($file_ext));
 
-        $allowed = array('pdf', 'doc', 'docx');
+        $allowed = array('pdf', 'doc', 'docx', 'zip', 'jpg', 'jpeg', 'png');
 
         if(in_array($file_ext, $allowed))
         {
@@ -41,10 +42,10 @@
                     $dbParams=array('assignid'=>$assignid, 'userid'=>$userid, 'graded'=>'0');
                     $dbQuery->execute($dbParams);
 
-                    echo "<script>window.location.href = 'view.php?id=" . $assignid . "&submitted=true'</script>";
+                    redirect("view.php?id=" . $assignid . "&submitted=true");
                 }
             }
         }
     }
-    echo "<script>window.location.href = 'view.php?id=" . $assignid . "&submitted=false'</script>";
+    redirect("view.php?id=" . $assignid . "&submitted=false");
 ?>

@@ -147,11 +147,11 @@
 			<div class="search">
 				<form method="get" action="courses/index.php">
 						<div class="form-row">
-							<div class="form-group col-md-10">
+							<div class="form-group col-md-11">
 								<input class="form-control form-control-lg" type="text" name="search" placeholder="Search for courses">
 							</div>
 							
-							<div class="form-group col-md-2">
+							<div class="form-group col-md-1">
 								<button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-search"></i></button>
 							</div>
 						</div>

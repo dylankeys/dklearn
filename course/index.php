@@ -134,18 +134,18 @@
             }
             ?>
             <h1>Course catalogue</h1>
-            <?php if(has_capability("course:create",$userID)) { echo '<button type="button" class="btn btn-primary btn-sm" style="float:right" onclick="window.location.href=\'create.php\'">Create a course</button>'; } ?>
 			
 			<div class="search">
 				<form method="get" action="index.php">
 						<div class="form-row">
-							<div class="form-group col-md-10">
+							<div class="form-group col-md-9">
 								<input class="form-control form-control-lg" type="text" name="search" placeholder="Search for courses">
 							</div>
 							
-							<div class="form-group col-md-2">
+							<div class="form-group col-md-3">
 								<button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-search"></i></button>
 								<button onclick="window.location.href='../course'" class="btn btn-primary btn-lg"><i class="fas fa-times"></i></button>
+								<?php if(has_capability("course:create",$userID)) { echo '<button type="button" class="btn btn-primary btn-lg" style="float:right" onclick="window.location.href=\'create.php\'">Add course</button>'; } ?>
 							</div>
 						</div>
 				</form>

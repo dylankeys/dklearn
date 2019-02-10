@@ -14,7 +14,7 @@
 		$dbParams=array('id'=>$id,'image'=>$image,'heading'=>$heading,'text'=>$text);
 		$dbQuery->execute($dbParams);
 		
-		echo "<script>window.location.href = 'index.php?success=1'</script>";
+		redirect("index.php?success=1");
 	}
 	else if(isset($_POST["slideAdd"]))
 	{
@@ -26,7 +26,7 @@
 		$dbParams=array('image'=>$image,'heading'=>$heading,'text'=>$text);
 		$dbQuery->execute($dbParams);
 		
-		echo "<script>window.location.href = 'index.php?success=1'</script>";
+		redirect("index.php?success=1");
 	}
 	else
 	{
@@ -55,7 +55,6 @@
 		$dbQuery=$db->prepare("select * from users where id=:id");
         $dbParams = array('id'=>$userID);
         $dbQuery->execute($dbParams);
-        //$dbRow=$dbQuery->fetch(PDO::FETCH_ASSOC);
 
         while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC))
         {

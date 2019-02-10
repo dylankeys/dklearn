@@ -69,8 +69,6 @@
 					$id = $_POST["quizid"];
 					$question = $_POST["question"];
 					
-					echo $question;
-					
 					$dbQuery=$db->prepare("insert into quiz_questions values (null,:quizid,:question)");
 					$dbParams=array('quizid'=>$id, 'question'=>$question);
 					$dbQuery->execute($dbParams);

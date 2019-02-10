@@ -141,6 +141,7 @@
 						echo "<tr> <td><a class='a' href='../course/view.php?id=".$courseId."'>".$title."</a></td> <td>".$description."</td><td><div class='progress'><div class='progress-bar bg-success' role='progressbar' style='width: 100%' aria-valuenow='100' aria-valuemin='0' aria-valuemax='100'></div></div></td></tr>";
 					}
 					
+					// The learning record display on PDF functionality is powered by http://www.fpdf.org/
 					echo '</table><br>
 							<button type="button" class="btn btn-primary btn-lg btn-block" onclick="window.location.href=\'learningrecord/generate.php?userid='.$userID.'\'">View learning record</button><br>';
 				}

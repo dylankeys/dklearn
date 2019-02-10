@@ -154,7 +154,8 @@
 								<div class="progress-bar" role="progressbar" style="width: '.$courseProgress.'%;" aria-valuenow="'.$courseProgress.'" aria-valuemin="0" aria-valuemax="100">'.$courseProgress.'%</div>
 							</div>';
 					}
-									
+					
+					// Select each topic's ID and set it as the current topic, and pull in the data
 					$dbQueryTopics = $db->prepare("select * from topics where `courseid`=:courseID order by `order`");
 					$dbParamsTopics = array('courseID' => $currentCourseID);
 					$dbQueryTopics->execute($dbParamsTopics);
@@ -171,7 +172,8 @@
 							echo '<br><div class="p-3 mb-2 bg-light text-dark">
 								<h3>'.$title.'</h3>
 								<p>'.$summary.'</p>
-								<ul>';							
+								<ul>';
+									// Select each unique element ID from the topics content table where the topic ID matches the current topic
 									$dbQueryTopicContent = $db->prepare("select elementid from `topic_content` where `topicid`=:topicid");
 									$dbParamsTopicContent = array('topicid' => $topicid);
 									$dbQueryTopicContent->execute($dbParamsTopicContent);
@@ -179,6 +181,7 @@
 									while ($dbRowTopicContent = $dbQueryTopicContent->fetch(PDO::FETCH_ASSOC)) {
 										$elementid = $dbRowTopicContent["elementid"];
 										
+										// Select the data that relates to the current element in order to determine the element's type and ID from its specific table
 										$dbQueryElement=$db->prepare("select * from elements where id=:elementid");
 										$dbParamsElement=array('elementid'=>$elementid);
 										$dbQueryElement->execute($dbParamsElement);
@@ -195,6 +198,7 @@
 												$name = $dbRowElementType["name"];
 												$tablename = $dbRowElementType["tablename"];
 												
+												// Select the element's topic from its specific table
 												$dbQueryElementContent=$db->prepare("select * from ".$tablename." where id=:contentid");
 												$dbParamsElementContent=array('contentid'=>$contentid);
 												$dbQueryElementContent->execute($dbParamsElementContent);
@@ -206,6 +210,7 @@
 													
 													$icon = "";
 													
+													// Set the icon for each type of element
 													switch ($name) {
 														case "assignment":
 															$icon = '<i class="fas fa-clipboard-list"></i>&nbsp;&nbsp;&nbsp;';
@@ -229,6 +234,7 @@
 															$icon = '<i class="fas fa-circle"></i>&nbsp;&nbsp;&nbsp;';
 													}
 													
+													// If the element is visible, echo to the page
 													if ($visible == 1)
 													{
 														if ($name == "video")
@@ -249,6 +255,15 @@
 															if(has_capability("course:admin",$userID) || $role == "teacher") { echo "<span class='course-icons'><a href='edit.php?topicid=".$topicid."&action=deleteElement&elementid=".$elementid."&courseid=".$currentCourseID."'><i class='far fa-trash-alt'></i></a></span>"; }
 															echo "</li>";
 														}
+														else if ($name == "file")
+														{
+															$fileTitle = $dbRowElementContent["name"];
+															$filename = $dbRowElementContent["filename"];
+
+															echo "<li class='course-element'>".$icon."<a href='../element/file/uploads/".$filename."'>".$fileTitle."</a>";
+															if(has_capability("course:admin",$userID) || $role == "teacher") { echo "<span class='course-icons'><a href='edit.php?topicid=".$topicid."&action=deleteElement&elementid=".$elementid."&courseid=".$currentCourseID."'><i class='far fa-trash-alt'></i></a></span>"; }
+															echo "</li>";
+														}
 														else
 														{
 															echo "<li class='course-element'>".$icon."<a href='../element/".$name."/view.php?id=".$id."'>".$title."</a>";
@@ -258,6 +273,7 @@
 													}
 													else if ($visible == 0 && (has_capability("course:admin",$userID) || $role == "teacher"))
 													{
+														// if the element is not visible, only diplay for admins/teachers
 														if ($name == "video")
 														{
 															$embed = $dbRowElementContent["embed"];
@@ -271,6 +287,15 @@
 															$embed = $dbRowElementContent["embed"];
 
 															echo "<li class='dimmed course-element'>".$icon.$embed;
+															if(has_capability("course:admin",$userID) || $role == "teacher") { echo "<span class='course-icons'><a href='edit.php?topicid=".$topicid."&action=deleteElement&elementid=".$elementid."&courseid=".$currentCourseID."'><i class='far fa-trash-alt'></i></a></span>"; }
+															echo "</li>";
+														}
+														else if ($name == "file")
+														{
+															$fileTitle = $dbRowElementContent["name"];
+															$filename = $dbRowElementContent["filename"];
+
+															echo "<li class='dimmed course-element'>".$icon."<a href='../element/file/uploads/".$filename."'>".$fileTitle."</a>";
 															if(has_capability("course:admin",$userID) || $role == "teacher") { echo "<span class='course-icons'><a href='edit.php?topicid=".$topicid."&action=deleteElement&elementid=".$elementid."&courseid=".$currentCourseID."'><i class='far fa-trash-alt'></i></a></span>"; }
 															echo "</li>";
 														}

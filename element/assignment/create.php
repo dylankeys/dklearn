@@ -108,7 +108,7 @@
 	</head>
 
 	<body>
-		<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1E88FF;">
+		<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: <?php echo $theme;?>;">
 		<!--<nav class="navbar navbar-expand-lg navbar-light bg-light">-->
 		  <a class="navbar-brand" href="../index.php"><?php echo $sitename;?></a>
 		  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
@@ -261,7 +261,7 @@
 			
 			<div class="form-row">
 				<div class="form-group col-md-6">
-					<label for="visiblity">Page visiblity</label>
+					<label for="visiblity">Assignment visiblity</label>
 					<select id="visiblity" name="visiblity" class="form-control">
 						<option value="1" selected>Show</option>
 						<option value="0">Hide</option>

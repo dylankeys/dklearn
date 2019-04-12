@@ -3,7 +3,18 @@
 	include("../../config.php");
 	include("../../lib.php");
 	
-	if (isset($_POST["slideUpdate"]))
+	if(isset($_GET["action"]) && $_GET["action"] == "delete")
+	{
+		$id = $_GET["slideID"];
+		
+		$dbQuery=$db->prepare("delete from slideshow where `id`=:id");
+		$dbParams=array('id'=>$id);
+		$dbQuery->execute($dbParams);
+		
+		echo "Test 3";
+		//echo "<script>window.location.href = 'index.php?deleted=1'</script>";
+	}
+	else if (isset($_POST["slideUpdate"]))
 	{
 		$id = $_POST["slideID"];
 		$image = $_POST["slideImage"];
@@ -14,7 +25,8 @@
 		$dbParams=array('id'=>$id,'image'=>$image,'heading'=>$heading,'text'=>$text);
 		$dbQuery->execute($dbParams);
 		
-		redirect("index.php?success=1");
+		echo "Test 1";
+		//echo "<script>window.location.href = 'index.php?success=1'</script>";
 	}
 	else if(isset($_POST["slideAdd"]))
 	{
@@ -26,7 +38,19 @@
 		$dbParams=array('image'=>$image,'heading'=>$heading,'text'=>$text);
 		$dbQuery->execute($dbParams);
 		
-		redirect("index.php?success=1");
+		echo "Test 2";
+		//echo "<script>window.location.href = 'index.php?success=1'</script>";
+	}
+	else if(isset($_GET["action"]) && $_GET["action"] == "delete")
+	{
+		$id = $_GET["slideID"];
+		
+		$dbQuery=$db->prepare("delete from slideshow where `id`=:id");
+		$dbParams=array('id'=>$id);
+		$dbQuery->execute($dbParams);
+		
+		echo "Test 3";
+		//echo "<script>window.location.href = 'index.php?deleted=1'</script>";
 	}
 	else
 	{
@@ -55,6 +79,7 @@
 		$dbQuery=$db->prepare("select * from users where id=:id");
         $dbParams = array('id'=>$userID);
         $dbQuery->execute($dbParams);
+        //$dbRow=$dbQuery->fetch(PDO::FETCH_ASSOC);
 
         while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC))
         {
@@ -73,7 +98,7 @@
 
 	<body>
 
-		<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1E88FF;">
+		<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: <?php echo $theme;?>;">
 		<!--<nav class="navbar navbar-expand-lg navbar-light bg-light">-->
 		  <a class="navbar-brand" href="../../"><?php echo $sitename;?></a>
 		  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
@@ -123,6 +148,15 @@
 			{				
 				echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
 						<strong>Success!</strong> Slideshow updated!
+						<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+						</button>
+					</div>';
+			}
+			else if(isset($_GET["deleted"]))
+			{				
+				echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
+						<strong>Success!</strong> Slideshow deleted!
 						<button type="button" class="close" data-dismiss="alert" aria-label="Close">
 						<span aria-hidden="true">&times;</span>
 						</button>
@@ -212,7 +246,7 @@
 				
 				echo '<img class="slide-img-preview" src="'.$image.'" alt="'.$heading.'" class="rounded" />';
 				
-				echo '<form method="post" action="index.php">
+				echo '<form class="confirm-delete" method="post" action="index.php">
 						<div class="form-row">
 							<div class="form-group col-md-12">
 								<label for="slideImage">Slide image source</label>
@@ -236,8 +270,9 @@
 						
 						<input type="hidden" name="slideID" value="'.$slideid.'" />
 						<input type="hidden" name="slideUpdate" />
-						<input type="submit" class="btn btn-primary" value="Update slide" />
-					</form>';
+						<input type="submit" class="btn btn-primary" value="Update slide" />&nbsp;
+					</form>
+					<button onclick="window.location.href=\'index.php?slideID='.$slideid.'&action=delete\'" class="btn btn-danger confirm-delete">Delete slide</button>';
 			}
 			else if(isset($_GET["slide"]) && $_GET["slide"]=="add")
 			{
@@ -274,7 +309,7 @@
 		?>
 		<br>
       </div>
-	  
+	  <br><br>
 	  <footer>
 		<p class="copyright"><?php echo $sitename ." | &copy ". date("Y"); ?></p>
 		<ul class="v-links">

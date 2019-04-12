@@ -6,8 +6,6 @@ function has_capability($cap, $userID) {
 	
 	include("config.php");
 	
-	// Select the user's role ID(s)
-	
 	$dbQuery=$db->prepare("select roleid from role_assignments where userid=:userid");
 	$dbParams=array('userid'=>$userID);
     $dbQuery->execute($dbParams);
@@ -16,8 +14,6 @@ function has_capability($cap, $userID) {
 	{
 		$roleID = $dbRow["roleid"];
 		
-		// Check if the role ID has the capability that is requested
-		
 		$dbQuery2=$db->prepare("select * from role_capabilities where roleid=:roleid and capability=:cap");
 		$dbParams2=array('roleid'=>$roleID,'cap'=>$cap);
 		$dbQuery2->execute($dbParams2);
@@ -25,11 +21,9 @@ function has_capability($cap, $userID) {
 		
 		if ($results > 0)
 		{
-			// If a capability matches the requested one, then return true
 			return true;
 		}
 	}
-	// If the loop finishes without returning true (i.e. no capability match was found), then return false
 	return false;
 }
 
@@ -206,13 +200,14 @@ function checkProgress($courseid, $userid) {
 		$typeid=$dbRowType["typeid"];
 		$contentid=$dbRowType["contentid"];
 		
-		$dbQueryTables=$db->prepare("select tablename, completiontable from elements_type where id=:typeid");
+		$dbQueryTables=$db->prepare("select name, tablename, completiontable from elements_type where id=:typeid");
 		$dbParamsTables=array('typeid'=>$typeid);
 		$dbQueryTables->execute($dbParamsTables);
 		$dbRowTables=$dbQueryTables->fetch(PDO::FETCH_ASSOC);
 		
 		$tablename=$dbRowTables["tablename"];
 		$completiontable=$dbRowTables["completiontable"];
+		$activityType=$dbRowTables["name"];
 		
 		$dbQueryPass=$db->prepare("select pass from ".$tablename." where id=:contentid");
 		$dbParamsPass=array('contentid'=>$contentid);
@@ -220,9 +215,17 @@ function checkProgress($courseid, $userid) {
 		$dbRowPass=$dbQueryPass->fetch(PDO::FETCH_ASSOC);
 		
 		$pass=$dbRowPass["pass"];
+
+		if ($activityType == "quiz")
+		{
+			$dbQueryGrade=$db->prepare("select grade from ".$completiontable." where userid=:userid and quizid=:contentid");
+		}
+		else if ($activityType == "assignment")
+		{
+			$dbQueryGrade=$db->prepare("select grade from ".$completiontable." where userid=:userid and assignmentid=:contentid");
+		}
 		
-		$dbQueryGrade=$db->prepare("select grade from ".$completiontable." where userid=:userid");
-		$dbParamsGrade=array('userid'=>$userid);
+		$dbParamsGrade=array('userid'=>$userid, 'contentid'=>$contentid);
 		$dbQueryGrade->execute($dbParamsGrade);
 		$dbRowGrade=$dbQueryGrade->fetch(PDO::FETCH_ASSOC);
 		

@@ -111,7 +111,7 @@
 
 	<body>
 
-		<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1E88FF;">
+		<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: <?php echo $theme;?>;">
 		<!--<nav class="navbar navbar-expand-lg navbar-light bg-light">-->
 		  <a class="navbar-brand" href="../index.php"><?php echo $sitename;?></a>
 		  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
@@ -266,16 +266,16 @@
 										$tablename=$dbRowElementType["tablename"];
 										$elementname=$dbRowElementType["name"];
 										$elementtype=$dbRowElementType["type"];
-										
-										$dbQueryElement=$db->prepare("select title from ".$tablename." where id=:contentid");
-										$dbParamsElement=array('contentid'=>$contentid);
-										$dbQueryElement->execute($dbParamsElement);
-										$dbRowElement=$dbQueryElement->fetch(PDO::FETCH_ASSOC);
-										
-										$title=$dbRowElement["title"];
-										
+
 										if ($elementtype == "activity")
 										{
+											$dbQueryElement=$db->prepare("select title from ".$tablename." where id=:contentid");
+											$dbParamsElement=array('contentid'=>$contentid);
+											$dbQueryElement->execute($dbParamsElement);
+											$dbRowElement=$dbQueryElement->fetch(PDO::FETCH_ASSOC);
+											
+											$title=$dbRowElement["title"];
+										
 											foreach ($currentCriteria as $criteria) {
 												if ($criteria == $elementid)
 												{

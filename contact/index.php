@@ -71,7 +71,7 @@
 
 	<body>
 
-		<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1E88FF;">
+		<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: <?php echo $theme;?>;">
 		<!--<nav class="navbar navbar-expand-lg navbar-light bg-light">-->
 		  <a class="navbar-brand" href="../index.php"><?php echo $sitename;?></a>
 		  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
@@ -122,31 +122,31 @@
 				<h3 style="text-align:center;">Site contacts</h3><br>
 				<div class="row">
 					<div class="col-sm-4">
-						<div class="card">
+						<div class="card h-100">
 							<div class="card-body">
 								<h5 class="card-title"><i class="fas fa-graduation-cap"></i>&nbsp;Developer</h5>
 								<p class="card-text">Contact the system developer</p>
-								<button class="btn btn-primary" id="copyText" onclick="setClipboard('keys-d2@ulster.ac.uk', '1')">Copy email</button>
+								<button class="btn btn-primary" id="copyText" onclick="setClipboard('<?php echo $devEmail ?>', '1')">Copy email</button>
 								<p class="card-text copy-confirm" id="confirm1">&nbsp;</p>
 							</div>
 						</div>
 					</div>
 					<div class="col-sm-4">
-						<div class="card">
+						<div class="card h-100">
 							<div class="card-body">
 								<h5 class="card-title"><i class="fas fa-graduation-cap"></i>&nbsp;Support</h5>
 								<p class="card-text">Contact the support team regarding any system queries.</p>
-								<button class="btn btn-primary" id="copyText" onclick="setClipboard('support@rocket-learn.com', '2')">Copy email</button>
+								<button class="btn btn-primary" id="copyText" onclick="setClipboard('<?php echo $supportEmail ?>', '2')">Copy email</button>
 								<p class="card-text copy-confirm" id="confirm2">&nbsp;</p>
 							</div>
 						</div>
 					</div>
 					<div class="col-sm-4">
-						<div class="card">
+						<div class="card h-100">
 							<div class="card-body">
 								<h5 class="card-title"><i class="fas fa-user"></i>&nbsp;Administration</h5>
 								<p class="card-text">Contact the system administrator.</p>
-								<button class="btn btn-primary" id="copyText" onclick="setClipboard('admin@rocket-learn.com', '3')">Copy email</button>
+								<button class="btn btn-primary" id="copyText" onclick="setClipboard('<?php echo $adminEmail ?>', '3')">Copy email</button>
 								<p class="card-text copy-confirm" id="confirm3">&nbsp;</p>
 							</div>
 						</div>

@@ -35,6 +35,21 @@
 		   $fullname=$dbRow["fullname"];
 		   $profileimage=$dbRow["profileimage"];
         }
+
+        $completedCourses = array();
+
+        $dbQuery=$db->prepare("select courses.id, courses.title, courses.description from course_completions inner join courses on course_completions.courseid = courses.id where course_completions.userid=:id");
+		$dbParams=array('id'=>$userID);
+		$dbQuery->execute($dbParams);
+
+		while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC))
+		{
+			$courseId=$dbRow["id"];
+
+			array_push($completedCourses, $courseId);
+		}
+
+
 	?>
 	
     <title><?php echo $sitename;?> | Dashboard</title>
@@ -46,7 +61,7 @@
 
 	<body>
 
-		<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1E88FF;">
+		<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: <?php echo $theme;?>;">
 		<!--<nav class="navbar navbar-expand-lg navbar-light bg-light">-->
 		  <a class="navbar-brand" href="../index.php"><?php echo $sitename;?></a>
 		  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
@@ -104,12 +119,23 @@
 
 				while ($dbRow = $dbQuery->fetch(PDO::FETCH_ASSOC))
 				{
+					$courseIsComplete = 0;
+
 					$courseId=$dbRow["courseid"];
 					$title=$dbRow["title"];
 					$description=$dbRow["description"];
 
-					echo "<tr> <td><a class='a' href='../course/view.php?id=".$courseId."'>".$title."</a></td> <td>".$description."</td><td><div class='progress'><div class='progress-bar bg-warning' role='progressbar' style='width: 50%' aria-valuenow='50' aria-valuemin='0' aria-valuemax='100'></div></div></td></tr>";
-					//echo "";
+					foreach ($completedCourses as $completedCourse) {
+						if ($courseId == $completedCourse)
+						{
+							$courseIsComplete++;
+						}
+					}
+
+					if ($courseIsComplete == 0)
+					{
+						echo "<tr> <td><a class='a' href='../course/view.php?id=".$courseId."'>".$title."</a></td> <td>".$description."</td><td><div class='progress'><div class='progress-bar bg-warning' role='progressbar' style='width: 50%' aria-valuenow='50' aria-valuemin='0' aria-valuemax='100'></div></div></td></tr>";
+					}
 				}
 			?>
 
@@ -141,7 +167,6 @@
 						echo "<tr> <td><a class='a' href='../course/view.php?id=".$courseId."'>".$title."</a></td> <td>".$description."</td><td><div class='progress'><div class='progress-bar bg-success' role='progressbar' style='width: 100%' aria-valuenow='100' aria-valuemin='0' aria-valuemax='100'></div></div></td></tr>";
 					}
 					
-					// The learning record display on PDF functionality is powered by http://www.fpdf.org/
 					echo '</table><br>
 							<button type="button" class="btn btn-primary btn-lg btn-block" onclick="window.location.href=\'learningrecord/generate.php?userid='.$userID.'\'">View learning record</button><br>';
 				}
